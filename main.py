@@ -5,18 +5,31 @@
 
 # ################### IMPORT ####################
 import json
+import math
 import os
 
 import matplotlib.pyplot as plt
 
 
 # ################### VARS ####################
-# Ruta de Ficheros a usar
-
-
 # Ruta de Carpetas
 inputFolder = "_input/"
 outputFolder = "_output/"
+
+
+# ################### CONSTANTS ####################
+THRESHOLD_LEVEL1 = 0.5
+THRESHOLD_LEVEL2 = 0.75
+THRESHOLD_LEVEL3 = 1
+THRESHOLD_LEVEL4 = 1.25
+
+COLOR_LEVEL1 = "#3c783c"
+COLOR_LEVEL2 = "#3c783c80"
+COLOR_LEVEL3 = "#ffbe00"
+COLOR_LEVEL4 = "#c0000080"
+COLOR_LEVEL5 = "#c00000"
+
+MARKER = "o"
 
 
 # ################### FUNCTIONS ####################
@@ -26,6 +39,8 @@ def main():
 
     i = 0
     listFile = os.listdir(inputFolder)
+    numRow = math.ceil(len(listFile)/2)
+    plt.rc("font", size=6)
     for file in listFile:
         i += 1
         arrayRawPosition = []
@@ -35,9 +50,8 @@ def main():
 
         modifyJsonFormat(inputFolder, outputFolder, file)
 
-        drawFile = os.path.join(outputFolder, file).replace("log", "png")
-        file = os.path.join(outputFolder, file)
-        parserFile = json.load(open(file, "r"))
+        filePath = os.path.join(outputFolder, file)
+        parserFile = json.load(open(filePath, "r"))
 
         for register in parserFile:
             arrayRawPosition.append(register["position"])
@@ -45,10 +59,14 @@ def main():
             arraySmoothedPosition.append(register["smoothedPosition"])
             arraySmoothedAccuracy.append(register["smoothedPositionAccuracy"])
 
-        printResult(arrayRawPosition, arrayRawAccuracy, i)
-        plt.savefig(drawFile)
+        plt.subplot(numRow, 3, i)
+        printResult(arrayRawPosition, arrayRawAccuracy, arraySmoothedPosition,
+                    arraySmoothedAccuracy, file)
 
+    plt.savefig("_output/Final_" + file.split("_")[4] + "_"
+                + file.split("_")[5].replace(".log", "") + ".png")
     plt.show()
+
     print("\n#################### GAME OVER ####################\n\n")
 
 
@@ -79,38 +97,75 @@ def modifyJsonFormat(inputFolder, outputFolder, file):
 
 
 # Function to print the results in a graph
-def printResult(arrayRawPosition, arrayRawAccuracy, location):
+def printResult(arrayRawPosition, arrayRawAccuracy, arraySmoothedPosition,
+                arraySmoothedAccuracy, file):
     i = 0
 
-    plt.subplot(4, 4, location)
     for position in arrayRawPosition:
-        plt.plot(position[0], position[1], createPoint(arrayRawAccuracy, i))
+        plt.plot(position[0], position[1], marker=MARKER,
+                 color=createPoint(arrayRawAccuracy, i))
         i += 1
 
-    rawAccuracy = round(sum(arrayRawAccuracy) / len(arrayRawAccuracy), 6)
-    smoothedAccuracy = round(sum(arrayRawAccuracy) / len(arrayRawAccuracy), 6)
-    plt.title("Raw Accuracy: " + str(rawAccuracy) + " / SmoothedAccuracy: "
-              + str(smoothedAccuracy))
+    rawAccuracy = round(sum(arrayRawAccuracy) / len(arrayRawAccuracy), 3)
+    smoothedAccuracy = round(sum(arraySmoothedAccuracy)
+                             / len(arraySmoothedAccuracy), 3)
+    plt.title(file.split("_")[1] + "_" + file.split("_")[2]
+              + "\nRaw Accuracy: " + str(rawAccuracy)
+              + " / Smoothed Accuracy: " + str(smoothedAccuracy))
+
+    texts = ["Level 1", "Level 2", "Level 3", "Level 4", "Level 5"]
+    colors = [COLOR_LEVEL1, COLOR_LEVEL2, COLOR_LEVEL3, COLOR_LEVEL4,
+              COLOR_LEVEL5]
+    legendPatches = [plt.plot([], [], marker=MARKER, ms=5, ls="", mec=None,
+                     color=colors[i], label=(calculateStatistics(
+                                             arrayRawAccuracy)[i]) + " %")[0]
+                     for i in range(len(texts))]
+    plt.legend(handles=legendPatches, loc="lower right")
 
 
 # Function to create the point with the correct colour
-# 0.00 - 0.50   'g'	green
-# 0.50 - 0.75   'y'	yellow
-# 0.75 - 1.00   'r'	red
-# 1.00 - 1.25   'm'	magenta
-# > 1.25        'k'	black
 def createPoint(array, position):
     accuracy = array[position]
-    if accuracy <= 0.5:
-        return("g.")
-    elif accuracy <= 0.75:
-        return("y.")
-    elif accuracy <= 1:
-        return("r.")
-    elif accuracy <= 1.25:
-        return("m.")
+    if accuracy <= THRESHOLD_LEVEL1:
+        return(COLOR_LEVEL1)
+    elif accuracy <= THRESHOLD_LEVEL2:
+        return(COLOR_LEVEL2)
+    elif accuracy <= THRESHOLD_LEVEL3:
+        return(COLOR_LEVEL3)
+    elif accuracy <= THRESHOLD_LEVEL4:
+        return(COLOR_LEVEL4)
     else:
-        return("k.")
+        return(COLOR_LEVEL5)
+
+
+# Function to calculate statistics
+def calculateStatistics(arrayRawAccuracy):
+    numLevel1 = 0
+    numLevel2 = 0
+    numLevel3 = 0
+    numLevel4 = 0
+    numLevel5 = 0
+
+    for accuracy in arrayRawAccuracy:
+        if accuracy <= THRESHOLD_LEVEL1:
+            numLevel1 += 1
+        elif accuracy <= THRESHOLD_LEVEL2:
+            numLevel2 += 1
+        elif accuracy <= THRESHOLD_LEVEL3:
+            numLevel3 += 1
+        elif accuracy <= THRESHOLD_LEVEL4:
+            numLevel4 += 1
+        else:
+            numLevel5 += 1
+
+    numLevel1Percent = str(round(numLevel1 / len(arrayRawAccuracy) * 100, 2))
+    numLevel2Percent = str(round(numLevel2 / len(arrayRawAccuracy) * 100, 2))
+    numLevel3Percent = str(round(numLevel3 / len(arrayRawAccuracy) * 100, 2))
+    numLevel4Percent = str(round(numLevel4 / len(arrayRawAccuracy) * 100, 2))
+    numLevel5Percent = str(round(numLevel5 / len(arrayRawAccuracy) * 100, 2))
+
+    return [numLevel1Percent, numLevel2Percent, numLevel3Percent,
+            numLevel4Percent, numLevel5Percent]
 
 
 # ################### EJECUCIÓN ####################
