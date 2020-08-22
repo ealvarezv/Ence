@@ -6,10 +6,12 @@
 # ################### IMPORT ####################
 import json
 import math
+import matplotlib.pyplot as plt
 import os
 import shutil
 
-import matplotlib.pyplot as plt
+
+from threading import Thread
 
 
 # ################### VARS ####################
@@ -43,38 +45,48 @@ def main():
 
     createStructure(tmpFolder, outputFolder)
 
-    i = 0
+    numFile = 0
     listFile = os.listdir(inputFolder)
-    numRow = math.ceil(len(listFile)/NUM_COLUMNS)
     plt.rc("font", size=FONT_SIZE)
+    threads = []
+    numRow = math.ceil(len(listFile)/NUM_COLUMNS)
     for file in listFile:
-        i += 1
+        numFile += 1
         arrayRawPosition = []
         arrayRawAccuracy = []
         arraySmoothedPosition = []
         arraySmoothedAccuracy = []
 
-        modifyJsonFormat(inputFolder, tmpFolder, file)
+        process = Thread(target=processFile, args=[arrayRawPosition,
+                         arrayRawAccuracy, arraySmoothedPosition,
+                         arraySmoothedAccuracy, numFile, numRow, inputFolder,
+                         tmpFolder, file])
+        process.start()
+        threads.append(process)
 
+    for process in threads:
+        process.join()
+    print("Thread Finished")
+
+    numFile = 0
+    for file in listFile:
+        numFile += 1
         filePath = os.path.join(tmpFolder, file)
         parserFile = json.load(open(filePath, "r"))
-
         for register in parserFile:
             arrayRawPosition.append(register["position"])
             arrayRawAccuracy.append(register["positionAccuracy"])
             arraySmoothedPosition.append(register["smoothedPosition"])
             arraySmoothedAccuracy.append(register["smoothedPositionAccuracy"])
 
-        plt.subplot(numRow, NUM_COLUMNS, i)
+        plt.subplot(numRow, NUM_COLUMNS, numFile)
         printResult(arrayRawPosition, arrayRawAccuracy, arraySmoothedPosition,
                     arraySmoothedAccuracy, file)
-        print(file + " Finished: " + str(i) + "/" + str(len(listFile)))
+        print(file + " Finished: " + str(numFile))
 
     plt.savefig("_output/Final_" + file.split("_")[4] + "_"
                 + file.split("_")[5].replace(".log", "") + ".png", dpi=200)
-
     deleteStructure(tmpFolder, outputFolder)
-
     print("\n#################### GAME OVER ####################\n\n")
 
 
@@ -83,6 +95,13 @@ def createStructure(tmpFolder, outputFolder):
     print("########## createStructure ##########")
     createFolder(tmpFolder)
     createFolder(outputFolder)
+
+
+# Function to obtain the data of one file
+def processFile(arrayRawPosition, arrayRawAccuracy, arraySmoothedPosition,
+                arraySmoothedAccuracy, numFile, numRow, inputFolder, tmpFolder,
+                file):
+    modifyJsonFormat(inputFolder, tmpFolder, file)
 
 
 # Function to create a folder
@@ -156,7 +175,7 @@ def printResult(arrayRawPosition, arrayRawAccuracy, arraySmoothedPosition,
                                              arrayRawAccuracy)[i]) + " %")[0]
                      for i in range(len(texts))]
     plt.legend(handles=legendPatches, loc="lower right", frameon=False,
-               fontsize=2)
+               fontsize=3)
     plt.axis('off')
 
 
