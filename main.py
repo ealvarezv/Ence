@@ -7,6 +7,7 @@
 import json
 import math
 import os
+import shutil
 
 import matplotlib.pyplot as plt
 
@@ -14,6 +15,7 @@ import matplotlib.pyplot as plt
 # ################### VARS ####################
 # Ruta de Carpetas
 inputFolder = "_input/"
+tmpFolder = "_temp/"
 outputFolder = "_output/"
 
 
@@ -29,7 +31,9 @@ COLOR_LEVEL3 = "#ffbe00"
 COLOR_LEVEL4 = "#c0000080"
 COLOR_LEVEL5 = "#c00000"
 
-MARKER = "o"
+NUM_COLUMNS = 3
+FONT_SIZE = 4
+MARKER = ","
 
 
 # ################### FUNCTIONS ####################
@@ -37,10 +41,12 @@ MARKER = "o"
 def main():
     print("\n#################### START ####################")
 
+    createStructure(tmpFolder, outputFolder)
+
     i = 0
     listFile = os.listdir(inputFolder)
-    numRow = math.ceil(len(listFile)/2)
-    plt.rc("font", size=6)
+    numRow = math.ceil(len(listFile)/NUM_COLUMNS)
+    plt.rc("font", size=FONT_SIZE)
     for file in listFile:
         i += 1
         arrayRawPosition = []
@@ -48,9 +54,9 @@ def main():
         arraySmoothedPosition = []
         arraySmoothedAccuracy = []
 
-        modifyJsonFormat(inputFolder, outputFolder, file)
+        modifyJsonFormat(inputFolder, tmpFolder, file)
 
-        filePath = os.path.join(outputFolder, file)
+        filePath = os.path.join(tmpFolder, file)
         parserFile = json.load(open(filePath, "r"))
 
         for register in parserFile:
@@ -59,15 +65,30 @@ def main():
             arraySmoothedPosition.append(register["smoothedPosition"])
             arraySmoothedAccuracy.append(register["smoothedPositionAccuracy"])
 
-        plt.subplot(numRow, 3, i)
+        plt.subplot(numRow, NUM_COLUMNS, i)
         printResult(arrayRawPosition, arrayRawAccuracy, arraySmoothedPosition,
                     arraySmoothedAccuracy, file)
+        print(file + " Finished: " + str(i) + "/" + str(len(listFile)))
 
     plt.savefig("_output/Final_" + file.split("_")[4] + "_"
-                + file.split("_")[5].replace(".log", "") + ".png")
-    plt.show()
+                + file.split("_")[5].replace(".log", "") + ".png", dpi=200)
+
+    deleteStructure(tmpFolder, outputFolder)
 
     print("\n#################### GAME OVER ####################\n\n")
+
+
+# Function to create the structure for files
+def createStructure(tmpFolder, outputFolder):
+    print("########## createStructure ##########")
+    createFolder(tmpFolder)
+    createFolder(outputFolder)
+
+
+# Function to create a folder
+def createFolder(logsFolder):
+    if not os.path.exists(logsFolder):
+        os.mkdir(logsFolder)
 
 
 # Function to modify the JSON File from Quuppa
@@ -76,16 +97,30 @@ def modifyJsonFormat(inputFolder, outputFolder, file):
     objFile = open(initialFile, "r").read().splitlines()
     finalFile = os.path.join(outputFolder, file)
     objFinalFile = open(finalFile, "w")
+    endFile = False
     i = 0
+    j = 0
 
     objFinalFile.write("[" + "\n")
+
+    for line in objFile:
+        j += 1
+        if line == "}":
+            numLine = j
+
+    objFile = open(initialFile, "r").read().splitlines()
     for line in objFile:
         i += 1
         if line == "}":
             if i == len(objFile):
                 line = "}" + "\n"
+            elif i == numLine:
+                line = "}" + "\n"
+                endFile = True
             else:
                 line = "}," + "\n"
+        elif endFile:
+            line = ""
         elif "#" in line:
             line = ""
         else:
@@ -110,17 +145,19 @@ def printResult(arrayRawPosition, arrayRawAccuracy, arraySmoothedPosition,
     smoothedAccuracy = round(sum(arraySmoothedAccuracy)
                              / len(arraySmoothedAccuracy), 3)
     plt.title(file.split("_")[1] + "_" + file.split("_")[2]
-              + "\nRaw Accuracy: " + str(rawAccuracy)
-              + " / Smoothed Accuracy: " + str(smoothedAccuracy))
+              + " (Accuracy)\nRaw : " + str(rawAccuracy)
+              + " / Smoothed : " + str(smoothedAccuracy))
 
     texts = ["Level 1", "Level 2", "Level 3", "Level 4", "Level 5"]
     colors = [COLOR_LEVEL1, COLOR_LEVEL2, COLOR_LEVEL3, COLOR_LEVEL4,
               COLOR_LEVEL5]
-    legendPatches = [plt.plot([], [], marker=MARKER, ms=5, ls="", mec=None,
+    legendPatches = [plt.plot([], [], marker="o", ms=5, ls="", mec=None,
                      color=colors[i], label=(calculateStatistics(
                                              arrayRawAccuracy)[i]) + " %")[0]
                      for i in range(len(texts))]
-    plt.legend(handles=legendPatches, loc="lower right")
+    plt.legend(handles=legendPatches, loc="lower right", frameon=False,
+               fontsize=2)
+    plt.axis('off')
 
 
 # Function to create the point with the correct colour
@@ -166,6 +203,18 @@ def calculateStatistics(arrayRawAccuracy):
 
     return [numLevel1Percent, numLevel2Percent, numLevel3Percent,
             numLevel4Percent, numLevel5Percent]
+
+
+# Function to delete the structure for temporal files
+def deleteStructure(srcFolder, dstFolder):
+    print("\n########## deleteTempStructure ##########")
+    if os.path.exists(srcFolder):
+        listFile = os.listdir(srcFolder)
+        for file in listFile:
+            src = srcFolder + file
+            dst = dstFolder + file
+            shutil.move(src, dst)
+        os.rmdir(srcFolder)
 
 
 # ################### EJECUCIÓN ####################
