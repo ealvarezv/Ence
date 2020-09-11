@@ -16,9 +16,12 @@ import timeit
 from threading import Thread
 
 # # ################### CONSTANTS ####################
-from modules._constants import THRESHOLD_LEVEL1, THRESHOLD_LEVEL2,\
-   THRESHOLD_LEVEL3, THRESHOLD_LEVEL4, COLOR_LEVEL1, COLOR_LEVEL2,\
-   COLOR_LEVEL3, COLOR_LEVEL4, COLOR_LEVEL5, NUM_COLUMNS, FONT_SIZE, MARKER
+from modules._constants import OUTPUT_FOLDER, THRESHOLD_LEVEL1, THRESHOLD_LEVEL2,\
+    THRESHOLD_LEVEL3, THRESHOLD_LEVEL4, COLOR_LEVEL1, COLOR_LEVEL2,\
+    COLOR_LEVEL3, COLOR_LEVEL4, COLOR_LEVEL5, PLOT_X, PLOT_Y, NUM_COLUMNS,\
+    FONT_SIZE, MARKER
+
+from modules.pixel_accuracy import grid_maker
 
 
 # ################### FUNCTIONS ####################
@@ -104,10 +107,10 @@ def processFile(tempFolder, outputFolder):
     for file in listFile:
         t = timeit.default_timer()
         fileContent = file.split("_")
-        drawFileName = (outputFolder + "Final_" + fileContent[1] + "_"
-                        + fileContent[3] + fileContent[4].replace(".log", "")
-                        + ".png")
-        if os.path.isfile(drawFileName):
+        drawFileName = ("EnceHUV_" + fileContent[1] + "_" + fileContent[3]
+                        + fileContent[4].replace(".log", ""))
+        drawFile = outputFolder + drawFileName + ".png"
+        if os.path.isfile(drawFile):
             print(drawFileName + " Already Created / Time "
                   + str(round((timeit.default_timer()-t), 2)))
         else:
@@ -133,58 +136,133 @@ def processFile(tempFolder, outputFolder):
 
 # Function to process the JSON files
 def processJSONFile(folder, file, numFile, queue, drawFileName):
+    arrayTag = []
+    filePath = os.path.join(folder, file)
+    parserFile = json.load(open(filePath, "r"))
+
+    for register in parserFile:
+        if register["name"] not in arrayTag:
+            arrayTag.append(register["name"])
+
+    arrayPixel = []
     arrayRawPosition = []
     arrayRawAccuracy = []
     arrayRawColorPoint = []
     arraySmoothedPosition = []
     arraySmoothedAccuracy = []
     arraySmoothedColorPoint = []
-    filePath = os.path.join(folder, file)
-    parserFile = json.load(open(filePath, "r"))
 
     for register in parserFile:
+        arrayPixelInfo = []
+        arrayPixelInfo.append(register["position"][0])
+        arrayPixelInfo.append(register["position"][1])
+        arrayPixelInfo.append(register["positionAccuracy"])
+
+        arrayPixel.append(arrayPixelInfo)
         arrayRawPosition.append(register["position"])
         arrayRawAccuracy.append(register["positionAccuracy"])
-        arrayRawColorPoint.append(colorPoint(register["positionAccuracy"]))
+        arrayRawColorPoint.append(colorPoint(
+            register["positionAccuracy"]))
         arraySmoothedPosition.append(register["smoothedPosition"])
-        arraySmoothedAccuracy.append(register["smoothedPositionAccuracy"])
+        arraySmoothedAccuracy.append(
+            register["smoothedPositionAccuracy"])
         arraySmoothedColorPoint.append(colorPoint(
-                                       register["smoothedPositionAccuracy"]))
+            register["smoothedPositionAccuracy"]))
 
+    allTags = True
+    drawFileNameTag = drawFileName + ".png"
     rawLevelAccuracy = calculateLevelAccuracy(arrayRawAccuracy)
     smoothedLevelAccuracy = calculateLevelAccuracy(arraySmoothedAccuracy)
-    rawTotalAccuracy = round(sum(arrayRawAccuracy) / len(arrayRawAccuracy), 3)
-    smoothedTotalAccuracy = round(sum(arraySmoothedAccuracy)
-                                  / len(arraySmoothedAccuracy), 3)
-
+    if len(arrayRawAccuracy) == 0:
+        rawTotalAccuracy = 0
+    else:
+        rawTotalAccuracy = round(sum(arrayRawAccuracy)
+                                 / len(arrayRawAccuracy), 3)
+        if len(arraySmoothedAccuracy) == 0:
+            smoothedTotalAccuracy = 0
+        else:
+            smoothedTotalAccuracy = round(sum(arraySmoothedAccuracy)
+                                          / len(arraySmoothedAccuracy), 3)
     queue.put([arrayRawPosition, arrayRawAccuracy, arrayRawColorPoint,
-               rawTotalAccuracy, rawLevelAccuracy, arraySmoothedPosition,
-               arraySmoothedAccuracy, smoothedTotalAccuracy,
-               smoothedLevelAccuracy, file, numFile, drawFileName])
+              rawTotalAccuracy, rawLevelAccuracy, arraySmoothedPosition,
+              arraySmoothedAccuracy, smoothedTotalAccuracy,
+              smoothedLevelAccuracy, file, numFile, drawFileNameTag,
+              allTags, arrayPixel])
+
+    for tag in arrayTag:
+        arrayPixel = []
+        arrayRawPosition = []
+        arrayRawAccuracy = []
+        arrayRawColorPoint = []
+        arraySmoothedPosition = []
+        arraySmoothedAccuracy = []
+        arraySmoothedColorPoint = []
+
+        for register in parserFile:
+            if register["name"] == tag:
+                arrayPixelInfo = []
+                arrayPixelInfo.append(register["position"][0])
+                arrayPixelInfo.append(register["position"][1])
+                arrayPixelInfo.append(register["positionAccuracy"])
+
+                arrayPixel.append(arrayPixelInfo)
+                arrayRawPosition.append(register["position"])
+                arrayRawAccuracy.append(register["positionAccuracy"])
+                arrayRawColorPoint.append(colorPoint(
+                    register["positionAccuracy"]))
+                arraySmoothedPosition.append(register["smoothedPosition"])
+                arraySmoothedAccuracy.append(
+                    register["smoothedPositionAccuracy"])
+                arraySmoothedColorPoint.append(colorPoint(
+                    register["smoothedPositionAccuracy"]))
+
+        allTags = False
+        drawFileNameTag = drawFileName + "_" + tag + ".png"
+        rawLevelAccuracy = calculateLevelAccuracy(arrayRawAccuracy)
+        smoothedLevelAccuracy = calculateLevelAccuracy(arraySmoothedAccuracy)
+        if len(arrayRawAccuracy) == 0:
+            rawTotalAccuracy = 0
+        else:
+            rawTotalAccuracy = round(sum(arrayRawAccuracy)
+                                     / len(arrayRawAccuracy), 3)
+        if len(arraySmoothedAccuracy) == 0:
+            smoothedTotalAccuracy = 0
+        else:
+            smoothedTotalAccuracy = round(sum(arraySmoothedAccuracy)
+                                          / len(arraySmoothedAccuracy), 3)
+
+        queue.put([arrayRawPosition, arrayRawAccuracy, arrayRawColorPoint,
+                  rawTotalAccuracy, rawLevelAccuracy, arraySmoothedPosition,
+                  arraySmoothedAccuracy, smoothedTotalAccuracy,
+                  smoothedLevelAccuracy, file, numFile, drawFileNameTag,
+                  allTags, arrayPixel])
 
 
 # Function to paint the results in a matplot
 def paintResult(queue, numRow, outputFolder):
     for result in queue:
         t = timeit.default_timer()
-
-        # plt.subplot(numRow, NUM_COLUMNS, result[7])
         printResult(result[0], result[2], result[3], result[4], result[9],
-                    result[10], outputFolder, result[11])
+                    result[10], outputFolder, result[11], result[12])
         print(result[11] + " Created / Time "
               + str(round((timeit.default_timer()-t), 2)))
+
+        plot_accuracy(grid_maker(data=result[13]), result[3], outputFolder,
+                      result[11], result[12])
 
 
 # Function to print the results in a graph
 def printResult(arrayPosition, arrayColor, totalAccuracy, levelAccuracy, file,
-                numFile, outputFolder, drawFileName):
+                numFile, outputFolder, drawFileName, allTags):
     i = 0
     for position in arrayPosition:
         plt.plot(position[0], position[1], color=arrayColor[i], marker=MARKER)
         i += 1
 
+    plt.xlim(PLOT_X)
+    plt.ylim(PLOT_Y)
     plt.axis('off')
-    plt.title(file.split("_")[1] + "_" + file.split("_")[2]
+    plt.title(drawFileName.replace(".png", "")
               + "\nAccuracy : " + str(totalAccuracy))
 
     texts = ["Level 1", "Level 2", "Level 3", "Level 4", "Level 5"]
@@ -196,12 +274,50 @@ def printResult(arrayPosition, arrayColor, totalAccuracy, levelAccuracy, file,
     plt.legend(legendPatches, levelAccuracy, loc="lower right", frameon=False,
                fontsize=FONT_SIZE)
 
-    plt.savefig(drawFileName, dpi=200)
+    varsDrawFolder = drawFileName.split("_")
+    if allTags:
+        drawFolder = OUTPUT_FOLDER
+    else:
+        drawFolder = (OUTPUT_FOLDER + varsDrawFolder[0] + "_"
+                      + varsDrawFolder[1] + "_" + varsDrawFolder[2] + "/")
+        createFolder(drawFolder)
+
+    plt.savefig((drawFolder + drawFileName), dpi=200)
+    plt.clf()
+
+
+def plot_accuracy(array, totalAccuracy, outputFolder, drawFileName, allTags):
+    x = 0
+    y = 0
+
+    lenArray = len(array)
+    for yPosition in array:
+        for xPosition in yPosition:
+            plt.plot(x, (lenArray - y), color=colorPoint(array[y][x]),
+                     marker="s")
+            x += 1
+        y += 1
+        x = 0
+
+    plt.axis('off')
+    plt.title(drawFileName.replace(".png", "")
+              + "\nAccuracy : " + str(totalAccuracy))
+
+    varsDrawFolder = drawFileName.split("_")
+    if allTags:
+        drawFolder = OUTPUT_FOLDER
+    else:
+        drawFolder = (OUTPUT_FOLDER + varsDrawFolder[0] + "_"
+                      + varsDrawFolder[1] + "_" + varsDrawFolder[2] + "/")
+
+    plt.savefig((drawFolder + "Pixel_" + drawFileName), dpi=200)
     plt.clf()
 
 
 # Function to create the point with the correct colour
 def colorPoint(value):
+    if value == 0:
+        return("w")
     if value <= THRESHOLD_LEVEL1:
         return(COLOR_LEVEL1)
     elif value <= THRESHOLD_LEVEL2:
@@ -234,11 +350,43 @@ def calculateLevelAccuracy(arrayRawAccuracy):
         else:
             numLevel5 += 1
 
-    numLevel1Percent = str(round(numLevel1 / len(arrayRawAccuracy) * 100, 2))
-    numLevel2Percent = str(round(numLevel2 / len(arrayRawAccuracy) * 100, 2))
-    numLevel3Percent = str(round(numLevel3 / len(arrayRawAccuracy) * 100, 2))
-    numLevel4Percent = str(round(numLevel4 / len(arrayRawAccuracy) * 100, 2))
-    numLevel5Percent = str(round(numLevel5 / len(arrayRawAccuracy) * 100, 2))
+    if len(arrayRawAccuracy) == 0:
+        numLevel1Percent = 0
+    else:
+        numLevel1Percent = ("[0-" + str(THRESHOLD_LEVEL1) + "]: "
+                            + str(round(numLevel1 / len(arrayRawAccuracy)
+                                  * 100, 2)) + "%")
+
+    if len(arrayRawAccuracy) == 0:
+        numLevel2Percent = 0
+    else:
+        numLevel2Percent = ("[" + str(THRESHOLD_LEVEL1) + "-"
+                            + str(THRESHOLD_LEVEL2) + "]: "
+                            + str(round(numLevel2 / len(arrayRawAccuracy)
+                                  * 100, 2)) + "%")
+
+    if len(arrayRawAccuracy) == 0:
+        numLevel3Percent = 0
+    else:
+        numLevel3Percent = ("[" + str(THRESHOLD_LEVEL2) + "-"
+                            + str(THRESHOLD_LEVEL3) + "]: "
+                            + str(round(numLevel3 / len(arrayRawAccuracy)
+                                  * 100, 2)) + "%")
+
+    if len(arrayRawAccuracy) == 0:
+        numLevel4Percent = 0
+    else:
+        numLevel4Percent = ("[" + str(THRESHOLD_LEVEL3) + "-"
+                            + str(THRESHOLD_LEVEL4) + "]: "
+                            + str(round(numLevel4 / len(arrayRawAccuracy)
+                                  * 100, 2)) + "%")
+
+    if len(arrayRawAccuracy) == 0:
+        numLevel5Percent = 0
+    else:
+        numLevel5Percent = (">" + str(THRESHOLD_LEVEL4) + ": "
+                            + str(round(numLevel5 / len(arrayRawAccuracy)
+                                  * 100, 2)) + "%")
 
     return [numLevel1Percent, numLevel2Percent, numLevel3Percent,
             numLevel4Percent, numLevel5Percent]

@@ -4,14 +4,10 @@
 # Main function of the script
 
 # ################### IMPORT ####################
+from modules._constants import INPUT_FOLDER, TEMP_FOLDER, OUTPUT_FOLDER
+
 from modules.functions import createStructure, modifyFile, processFile,\
                               deleteStructure
-
-# ################### VARS ####################
-# Ruta de Carpetas
-inputFolder = "_input/"
-tempFolder = "ztemp/"
-outputFolder = "_output/"
 
 
 # ################### FUNCTIONS ####################
@@ -20,13 +16,13 @@ def main():
 
     print("\n#################### START ####################")
 
-    createStructure(tempFolder, outputFolder)
+    createStructure(TEMP_FOLDER, OUTPUT_FOLDER)
 
-    modifyFile(inputFolder, tempFolder)
+    modifyFile(INPUT_FOLDER, TEMP_FOLDER)
 
-    processFile(tempFolder, outputFolder)
+    processFile(TEMP_FOLDER, OUTPUT_FOLDER)
 
-    deleteStructure(tempFolder, outputFolder)
+    deleteStructure(TEMP_FOLDER, OUTPUT_FOLDER)
 
     print("\n#################### GAME OVER ####################\n")
 
