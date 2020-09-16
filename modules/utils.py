@@ -12,22 +12,17 @@ import collections
 import shapely.geometry
 import matplotlib.pyplot as plt
 import math
-import uuid
 from pyproj import Proj, transform
-import time
-import datetime as dt
 import json
 
-def kuppatointer(coord,
-                 file_config):
-    
+def kuppatointer(coord, file_config):
     wgs84 = Proj(init='epsg:4326') # Degrees 4 digits
     etrs89 = Proj(init='epsg:25829') # Meters 5 digits
-    
+
     xpos, ypos = etrs69tokuppa(coord,
                                file_config,
                                inverse = True)
-    
+
     # From etrs89 (previously trasnformed from Kuppa) to International in Lon/Lat
     lonpos,latpos = transform(etrs89,wgs84,xpos,ypos)
     return [lonpos, latpos]
@@ -36,12 +31,12 @@ def kuppatointer(coord,
 def etrs69tokuppa(coord,
                   file_config,
                   inverse = False):
-    
-    # Ref in meters of etrs89 (Kuppas center) # SIMPLE TRANSLATION #   
+
+    # Ref in meters of etrs89 (Kuppas center) # SIMPLE TRANSLATION #
     xref = d_get(file_config, 'coordinates.reference_pos')[0] # etrs89: 689922.01 # wgs84: -6.85698303
     yref = d_get(file_config, 'coordinates.reference_pos')[1] # etrs89: 4130983.168 # wgs84: 37.30610025
     rot_angle = d_get(file_config, 'coordinates.rot_angle') # 0.371755
-    
+
     if not inverse:
         # Translation
         xmov = coord[0] - xref
@@ -75,13 +70,13 @@ def dict_constructor(raw_list, file_config):
 
     '''
     info = [[item, count] for item, count in collections.Counter([row[2] for row in raw_list]).items() if count > 1]
-    
+
     aux_list = [1]
     cumul = 1
     for i in range(len(info)):
         cumul += info[i][1]
-        aux_list.append(cumul) 
-        
+        aux_list.append(cumul)
+
     list_polygons = []
     for i in range(len(info)):
         # No coordinates transformation
@@ -90,17 +85,17 @@ def dict_constructor(raw_list, file_config):
         l = [etrs69tokuppa([float(raw_list[j][0]), float(raw_list[j][1])],
                            file_config) for j in list(range(aux_list[i],aux_list[i+1]))]
         list_polygons.append(l)
-        
+
     areas = {raw_list[i][2]:{'Geometry':shapely.geometry.Polygon(j),
                              'Number_vertices': info[k][1],
                              'Coordinates': j,
                              'Type':raw_list[i][3]} for i,j,k in zip(aux_list[:-1],list_polygons,range(len(info)))}
-        
+
     return areas
 
 def areas_ENCE(file_config,
                filepath = 'data'):
-    
+
     '''
     ENCE Areas reader from a given csv
     name of the file: Zonas_Ence_25829_m.csv
@@ -121,22 +116,22 @@ def areas_ENCE(file_config,
     return f
 
 def plot_areas(file):
-    
+
     # Reading from dictionary
     poly_l = [[key, value['Geometry']] for key, value in file.items()]
-    
+
     fig, ax = plt.subplots()
     for i in range(len(poly_l)):
         ax.plot(*poly_l[i][1].exterior.xy, 'k')#, label=poly_l[i][0])
-    
+
     #ax.legend(bbox_to_anchor=(1.1, 1.05))
     ax.grid()
     ax.axis('equal')
     plt.subplots_adjust(right=0.6)
-    plt.show()    
+    plt.show()
 
 def read_json(file_name, filepath = 'data'):
-    
+
     script_dir = os.path.dirname(__file__)
     file_path = filepath + file_name
     abs_file_path = os.path.join(script_dir, file_path)
@@ -150,16 +145,8 @@ def d_get(dictionary, keys, default=None):
     return reduce(lambda d, key: d.get(key, default) if isinstance(d, dict) else default, keys.split("."), dictionary)
 
 if __name__ == '__main__':
-    
+
     file_config = read_json(file_name="/configuration.txt")
-    #file_devices = read_json(file_name="/devicelist.txt") 
+    #file_devices = read_json(file_name="/devicelist.txt")
     file_areas = areas_ENCE(file_config)
     plot_areas(file_areas)
-    
-    
-    
-    
-    
-    
-    
-    

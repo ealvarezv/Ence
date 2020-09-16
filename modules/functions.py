@@ -7,21 +7,22 @@
 import json
 import math
 import matplotlib.pyplot as plt
+import numpy as np
 import os
 import queue
 import shutil
 import timeit
 
-
 from threading import Thread
 
-# # ################### CONSTANTS ####################
+
+# ################### CONSTANTS ####################
 from modules._constants import OUTPUT_FOLDER, THRESHOLD_LEVEL1, THRESHOLD_LEVEL2,\
     THRESHOLD_LEVEL3, THRESHOLD_LEVEL4, COLOR_LEVEL1, COLOR_LEVEL2,\
     COLOR_LEVEL3, COLOR_LEVEL4, COLOR_LEVEL5, PLOT_X, PLOT_Y, NUM_COLUMNS,\
     FONT_SIZE, MARKER
 
-from modules.pixel_accuracy import grid_maker
+from modules.utils import read_json, areas_ENCE
 
 
 # ################### FUNCTIONS ####################
@@ -107,8 +108,10 @@ def processFile(tempFolder, outputFolder):
     for file in listFile:
         t = timeit.default_timer()
         fileContent = file.split("_")
-        drawFileName = ("EnceHUV_" + fileContent[1] + "_" + fileContent[3]
-                        + fileContent[4].replace(".log", ""))
+        drawFileName = ("EnceHUV_" + fileContent[3]
+                        + fileContent[4].replace(".log", "") + "_"
+                        + fileContent[1])
+
         drawFile = outputFolder + drawFileName + ".png"
         if os.path.isfile(drawFile):
             print(drawFileName + " Already Created / Time "
@@ -151,6 +154,8 @@ def processJSONFile(folder, file, numFile, queue, drawFileName):
     arraySmoothedPosition = []
     arraySmoothedAccuracy = []
     arraySmoothedColorPoint = []
+    arrayTSOutput = []
+    arrayTSPosition = []
 
     for register in parserFile:
         arrayPixelInfo = []
@@ -168,11 +173,15 @@ def processJSONFile(folder, file, numFile, queue, drawFileName):
             register["smoothedPositionAccuracy"])
         arraySmoothedColorPoint.append(colorPoint(
             register["smoothedPositionAccuracy"]))
+        arrayTSOutput.append(register["positionOutputTS"])
+        arrayTSPosition.append(register["positionTS"])
 
     allTags = True
     drawFileNameTag = drawFileName + ".png"
     rawLevelAccuracy = calculateLevelAccuracy(arrayRawAccuracy)
     smoothedLevelAccuracy = calculateLevelAccuracy(arraySmoothedAccuracy)
+    latency = calculateLatency(arrayTSOutput, arrayTSPosition)
+
     if len(arrayRawAccuracy) == 0:
         rawTotalAccuracy = 0
     else:
@@ -187,7 +196,7 @@ def processJSONFile(folder, file, numFile, queue, drawFileName):
               rawTotalAccuracy, rawLevelAccuracy, arraySmoothedPosition,
               arraySmoothedAccuracy, smoothedTotalAccuracy,
               smoothedLevelAccuracy, file, numFile, drawFileNameTag,
-              allTags, arrayPixel])
+              allTags, arrayPixel, latency])
 
     for tag in arrayTag:
         arrayPixel = []
@@ -197,6 +206,8 @@ def processJSONFile(folder, file, numFile, queue, drawFileName):
         arraySmoothedPosition = []
         arraySmoothedAccuracy = []
         arraySmoothedColorPoint = []
+        arrayTSOutput = []
+        arrayTSPosition = []
 
         for register in parserFile:
             if register["name"] == tag:
@@ -215,11 +226,14 @@ def processJSONFile(folder, file, numFile, queue, drawFileName):
                     register["smoothedPositionAccuracy"])
                 arraySmoothedColorPoint.append(colorPoint(
                     register["smoothedPositionAccuracy"]))
+                arrayTSOutput.append(register["positionOutputTS"])
+                arrayTSPosition.append(register["positionTS"])
 
         allTags = False
         drawFileNameTag = drawFileName + "_" + tag + ".png"
         rawLevelAccuracy = calculateLevelAccuracy(arrayRawAccuracy)
         smoothedLevelAccuracy = calculateLevelAccuracy(arraySmoothedAccuracy)
+        latency = calculateLatency(arrayTSOutput, arrayTSPosition)
         if len(arrayRawAccuracy) == 0:
             rawTotalAccuracy = 0
         else:
@@ -235,7 +249,7 @@ def processJSONFile(folder, file, numFile, queue, drawFileName):
                   rawTotalAccuracy, rawLevelAccuracy, arraySmoothedPosition,
                   arraySmoothedAccuracy, smoothedTotalAccuracy,
                   smoothedLevelAccuracy, file, numFile, drawFileNameTag,
-                  allTags, arrayPixel])
+                  allTags, arrayPixel, latency])
 
 
 # Function to paint the results in a matplot
@@ -243,17 +257,18 @@ def paintResult(queue, numRow, outputFolder):
     for result in queue:
         t = timeit.default_timer()
         printResult(result[0], result[2], result[3], result[4], result[9],
-                    result[10], outputFolder, result[11], result[12])
+                    result[10], outputFolder, result[11], result[12],
+                    result[14])
         print(result[11] + " Created / Time "
               + str(round((timeit.default_timer()-t), 2)))
 
         plot_accuracy(grid_maker(data=result[13]), result[3], outputFolder,
-                      result[11], result[12])
+                      result[11], result[12], result[14])
 
 
 # Function to print the results in a graph
 def printResult(arrayPosition, arrayColor, totalAccuracy, levelAccuracy, file,
-                numFile, outputFolder, drawFileName, allTags):
+                numFile, outputFolder, drawFileName, allTags, latency):
     i = 0
     for position in arrayPosition:
         plt.plot(position[0], position[1], color=arrayColor[i], marker=MARKER)
@@ -263,7 +278,8 @@ def printResult(arrayPosition, arrayColor, totalAccuracy, levelAccuracy, file,
     plt.ylim(PLOT_Y)
     plt.axis('off')
     plt.title(drawFileName.replace(".png", "")
-              + "\nAccuracy : " + str(totalAccuracy))
+              + "\nAccuracy : " + str(totalAccuracy) + "\nLatency : "
+              + str(latency))
 
     texts = ["Level 1", "Level 2", "Level 3", "Level 4", "Level 5"]
     colors = [COLOR_LEVEL1, COLOR_LEVEL2, COLOR_LEVEL3, COLOR_LEVEL4,
@@ -282,14 +298,19 @@ def printResult(arrayPosition, arrayColor, totalAccuracy, levelAccuracy, file,
                       + varsDrawFolder[1] + "_" + varsDrawFolder[2] + "/")
         createFolder(drawFolder)
 
+    poly_l = get_areas()
+    for i in range(len(poly_l)):
+        plt.plot(*poly_l[i][1].exterior.xy, 'k')
+
     plt.savefig((drawFolder + drawFileName), dpi=200)
     plt.clf()
 
 
-def plot_accuracy(array, totalAccuracy, outputFolder, drawFileName, allTags):
+# Function to print the results with pixels in a graph
+def plot_accuracy(array, totalAccuracy, outputFolder, drawFileName, allTags,
+                  latency):
     x = 0
     y = 0
-
     lenArray = len(array)
     for yPosition in array:
         for xPosition in yPosition:
@@ -301,7 +322,8 @@ def plot_accuracy(array, totalAccuracy, outputFolder, drawFileName, allTags):
 
     plt.axis('off')
     plt.title(drawFileName.replace(".png", "")
-              + "\nAccuracy : " + str(totalAccuracy))
+              + "\nAccuracy : " + str(totalAccuracy) + "\nLatency : "
+              + str(latency))
 
     varsDrawFolder = drawFileName.split("_")
     if allTags:
@@ -309,6 +331,10 @@ def plot_accuracy(array, totalAccuracy, outputFolder, drawFileName, allTags):
     else:
         drawFolder = (OUTPUT_FOLDER + varsDrawFolder[0] + "_"
                       + varsDrawFolder[1] + "_" + varsDrawFolder[2] + "/")
+
+    # poly_l = get_areas()
+    # for i in range(len(poly_l)):
+    #     plt.plot(*poly_l[i][1].exterior.xy, 'k')
 
     plt.savefig((drawFolder + "Pixel_" + drawFileName), dpi=200)
     plt.clf()
@@ -392,6 +418,19 @@ def calculateLevelAccuracy(arrayRawAccuracy):
             numLevel4Percent, numLevel5Percent]
 
 
+# Function to calculate the latency
+def calculateLatency(arrayTSOutput, arrayTSPosition):
+    packetLatency = []
+    i = 0
+
+    for ts in arrayTSOutput:
+        packetLatency.append(arrayTSOutput[i] - arrayTSPosition[i])
+        i += 1
+
+    return (sum(packetLatency) / float(len(packetLatency)), max(packetLatency),
+            min(packetLatency))
+
+
 # Function to delete the structure for temporal files
 def deleteStructure(srcFolder, dstFolder):
     print("\n##### deleteTempStructure #####")
@@ -404,3 +443,37 @@ def deleteStructure(srcFolder, dstFolder):
         print("Files moved from " + srcFolder + " to " + dstFolder)
         os.rmdir(srcFolder)
         print("Folder " + srcFolder + " deleted")
+
+
+# Function to create the grid
+def grid_maker(size: int = 40, mapa: list = [[-169, 89], [-60, 120]],
+               data: list = []):
+    a = abs(mapa[0][0] - mapa[0][1])
+    b = abs(mapa[1][0] - mapa[1][1])
+    pixel_size = min(a, b) / size
+    sec_pixel_num = int(max(a, b) / pixel_size)
+    array = np.zeros([sec_pixel_num, size])
+    super_list = [[0] for x in range(size * sec_pixel_num + 1)]
+
+    for i in data:
+        norm = [i[0] - mapa[0][0], i[1] - mapa[1][0]]
+        pixel_coord = [int(round(norm[0] / pixel_size)),
+                       int(round(norm[1] / pixel_size))]
+        pos_s_l = pixel_coord[0] + pixel_coord[1]*sec_pixel_num
+        super_list[pos_s_l].append(i[2])
+
+    count = 1
+    for i in range(array.shape[1]):
+        for j in range(array.shape[0]):
+            array[j][i] = np.mean(super_list[count])
+            count += 1
+
+    return np.transpose(array)[::-1]
+
+
+# Function to create the grid
+def get_areas():
+    file_config = read_json(file_name="/configuration.txt")
+    file_areas = areas_ENCE(file_config)
+    poly_l = [[key, value['Geometry']] for key, value in file_areas.items()]
+    return poly_l
