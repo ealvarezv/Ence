@@ -1,0 +1,78 @@
+{
+"basic":{
+	"serveradress": "motionqpeconnector",
+	"serverport": 10000,
+	"mqttbrokerhost":"itacaremote1.homedns.org",
+	"mqttbrokerport":1883,
+	"mqttuser":"onesait",
+	"mqttpass":"ence_huelva",   	
+	"empty_queue_restart": 30,
+	"error_limit": [3, 6]
+	},
+"coordinates":{
+	"rot_angle": 0,
+	"reference_pos": [689922.01, 4130983.168],
+	"areas":"Zonas_Ence_25829_m.csv"
+	},
+"spawn":{
+	"spawn_restart_time": 10,
+	"tags_not_active_time": 25
+	},
+"error_switch":{
+	"error_switch_restart_time": 5,
+	"tags_not_active_time": 2,
+	"dist2center": 10
+	},
+"w_v":{
+	"low_e":{
+		"up_rad":5,
+		"down_rad":5,
+		"min_speed_hazards": 2,
+		"warning_param": [10, 12],
+		"severe_param": [5, 8]
+		},
+	"high_e":{
+		"up_rad":7,
+		"down_rad":7,
+		"min_speed_hazards": 2,
+		"warning_param": [10, 8],
+		"severe_param": [5, 6]
+		},
+	"extra_high_e":{
+		"up_rad":10,
+		"down_rad":10,
+		"min_speed_hazards": 2,
+		"warning_param": [10, 6],
+		"severe_param": [5, 4]
+		},
+	"lost_signal":{
+		"area_rad": 20,
+		"min_dist": 80,
+		"min_speed_hazards": 2,
+		"params": 5
+		}
+	},
+"v_w":{
+	"low_e":{
+		"speed_limit":3.5,
+		"min_speed_5m":0.5,
+		"truck_param": [50, 16],
+		"shovel_param": [10],
+		"sedan_param": [8]
+		},
+	"high_e":{
+		"speed_limit":3.0,
+		"min_speed_5m":1.0,
+		"truck_param": [50, 18],
+		"shovel_param": [12],
+		"sedan_param": [10]
+		},
+	"extra_high_e":{
+		"speed_limit":3.0,
+		"min_speed_5m":1.0,
+		"truck_param": [50, 18],
+		"shovel_param": [12],
+		"sedan_param": [10]
+		}		
+	}
+}
