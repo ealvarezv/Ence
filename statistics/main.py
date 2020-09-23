@@ -18,6 +18,7 @@ from modules.structure import initiateStructure, finishStructure
 def main():
 
     print("\n#################### START ####################")
+
     os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
     initiateStructure()
