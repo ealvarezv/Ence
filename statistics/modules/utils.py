@@ -150,3 +150,4 @@ if __name__ == '__main__':
     #file_devices = read_json(file_name="/devicelist.txt")
     file_areas = areas_ENCE(file_config)
     plot_areas(file_areas)
+    

@@ -5,12 +5,11 @@
 # Main function of the script
 
 # ################### IMPORT ####################
+import os
+
 from modules._constants import INPUT_FOLDER, TEMP_FOLDER, OUTPUT_FOLDER
-
 from modules.createJSON import createJSON
-
 from modules.functions import processFile
-
 from modules.structure import initiateStructure, finishStructure
 
 
@@ -19,6 +18,7 @@ from modules.structure import initiateStructure, finishStructure
 def main():
 
     print("\n#################### START ####################")
+    os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
     initiateStructure()
 
