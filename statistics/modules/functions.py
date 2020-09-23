@@ -297,9 +297,9 @@ def printLatencyRaw(arrayPosition, arrayTS, file, drawFileName, allTags,
     plt.xlim(PLOT_X)
     plt.ylim(PLOT_Y)
     plt.axis('off')
-    plt.title(drawFileName.replace(".png", "") + "\nMedium Latency: "
-              + str(round(latency[0], 2)) + "\nMaximum Latency: "
-              + str(latency[1]) + "\nMinimum Latency: " + str(latency[2]))
+    plt.title(drawFileName.replace(".png", "") + "\nLatency(ms) [Medium: "
+              + str(round(latency[0], 2)) + " ms / Maximum: "
+              + str(latency[1]) + " ms / Minimum: " + str(latency[2]) + " ms]")
 
     texts = ["Level 1", "Level 2", "Level 3", "Level 4", "Level 5"]
     colors = [LATENCY_COLOR_LEVEL1, LATENCY_COLOR_LEVEL2,
@@ -334,9 +334,9 @@ def printLatencyHistogram(arrayTS, file, drawFileName, allTags, latency):
     t = timeit.default_timer()
     plt.hist(arrayTS, color='blue', edgecolor='black', bins=int(180/5))
 
-    plt.title(drawFileName.replace(".png", "") + "\nMedium Latency: "
-              + str(round(latency[0], 2)) + "\nMaximum Latency: "
-              + str(latency[1]) + "\nMinimum Latency: " + str(latency[2]))
+    plt.title(drawFileName.replace(".png", "") + "\nLatency(ms) [Medium: "
+              + str(round(latency[0], 2)) + " ms / Maximum: "
+              + str(latency[1]) + " ms / Minimum: " + str(latency[2]) + " ms]")
 
     varsDrawFolder = drawFileName.split("_")
     if allTags:
@@ -469,7 +469,7 @@ def calculateLevelLatency(arrayTS):
     if len(arrayTS) == 0:
         numLevel1Percent = 0
     else:
-        numLevel1Percent = ("[0-" + str(LATENCY_THRESHOLD_LEVEL1) + "]: "
+        numLevel1Percent = ("[0-" + str(LATENCY_THRESHOLD_LEVEL1) + " ms]: "
                             + str(round(numLevel1 / len(arrayTS)
                                   * 100, 2)) + "%")
 
@@ -477,7 +477,7 @@ def calculateLevelLatency(arrayTS):
         numLevel2Percent = 0
     else:
         numLevel2Percent = ("[" + str(LATENCY_THRESHOLD_LEVEL1) + "-"
-                            + str(LATENCY_THRESHOLD_LEVEL2) + "]: "
+                            + str(LATENCY_THRESHOLD_LEVEL2) + " ms]: "
                             + str(round(numLevel2 / len(arrayTS)
                                   * 100, 2)) + "%")
 
@@ -485,7 +485,7 @@ def calculateLevelLatency(arrayTS):
         numLevel3Percent = 0
     else:
         numLevel3Percent = ("[" + str(LATENCY_THRESHOLD_LEVEL2) + "-"
-                            + str(LATENCY_THRESHOLD_LEVEL3) + "]: "
+                            + str(LATENCY_THRESHOLD_LEVEL3) + " ms]: "
                             + str(round(numLevel3 / len(arrayTS)
                                   * 100, 2)) + "%")
 
@@ -493,14 +493,14 @@ def calculateLevelLatency(arrayTS):
         numLevel4Percent = 0
     else:
         numLevel4Percent = ("[" + str(LATENCY_THRESHOLD_LEVEL3) + "-"
-                            + str(LATENCY_THRESHOLD_LEVEL4) + "]: "
+                            + str(LATENCY_THRESHOLD_LEVEL4) + " ms]: "
                             + str(round(numLevel4 / len(arrayTS)
                                   * 100, 2)) + "%")
 
     if len(arrayTS) == 0:
         numLevel5Percent = 0
     else:
-        numLevel5Percent = (">" + str(LATENCY_THRESHOLD_LEVEL4) + ": "
+        numLevel5Percent = (">" + str(LATENCY_THRESHOLD_LEVEL4) + " ms: "
                             + str(round(numLevel5 / len(arrayTS)
                                   * 100, 2)) + "%")
 
