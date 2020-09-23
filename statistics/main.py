@@ -30,6 +30,6 @@ def main():
     print("\n#################### GAME OVER ####################\n")
 
 
-# ################### EJECUCIÓN ####################
-# Ejecución Script
+# ################### EJECUCION ####################
+# Ejecucion Script
 main()
