@@ -9,7 +9,7 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-import Queue
+import queue
 import timeit
 
 from threading import Thread
@@ -33,7 +33,7 @@ def processFile(tempFolder, outputFolder):
     print("\n##### processFile #####")
     listFile = os.listdir(tempFolder)
     numRow = math.ceil(len(listFile)/NUM_COLUMNS)
-    queueResult = Queue.Queue()
+    queueResult = queue.Queue()
     threads = []
     numFile = 0
 
@@ -243,7 +243,7 @@ def printAccuracyRaw(arrayPosition, arrayColor, totalAccuracy, levelAccuracy,
 
     poly_l = get_areas()
     for i in range(len(poly_l)):
-        plt.plot(*(poly_l[i][1].exterior.xy + ('k',)))
+        plt.plot(*poly_l[i][1].exterior.xy, 'k')
 
     plt.savefig((drawFolder + drawFileName), dpi=200)
     plt.clf()
@@ -313,7 +313,7 @@ def printLatencyRaw(arrayPosition, arrayTS, file, drawFileName, allTags,
 
     poly_l = get_areas()
     for i in range(len(poly_l)):
-        plt.plot(*(poly_l[i][1].exterior.xy + ('k',)))
+        plt.plot(*poly_l[i][1].exterior.xy, 'k')
 
     varsDrawFolder = drawFileName.split("_")
     if allTags:
@@ -515,7 +515,8 @@ def calculateLatency(arrayTS):
 
 
 # Function to create the grid
-def grid_maker(size = 40, mapa = [[-169, 89], [-60, 120]], data = []):
+def grid_maker(size: int = 40, mapa: list = [[-169, 89], [-60, 120]],
+               data: list = []):
     a = abs(mapa[0][0] - mapa[0][1])
     b = abs(mapa[1][0] - mapa[1][1])
     pixel_size = min(a, b) / size

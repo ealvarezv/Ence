@@ -122,7 +122,7 @@ def plot_areas(file):
 
     fig, ax = plt.subplots()
     for i in range(len(poly_l)):
-        ax.plot(*(poly_l[i][1].exterior.xy + ('k',)))#, label=poly_l[i][0])
+        ax.plot(*poly_l[i][1].exterior.xy, 'k')#, label=poly_l[i][0])
 
     #ax.legend(bbox_to_anchor=(1.1, 1.05))
     ax.grid()

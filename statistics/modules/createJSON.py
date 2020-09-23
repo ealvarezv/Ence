@@ -16,9 +16,6 @@ from threading import Thread
 # Function to modify the JSON File from Quuppa
 def createJSON(inputFolder, tempFolder, outputFolder):
     print("\n##### modifyFile #####")
-    print(os.getcwd())
-    currentFolder = os.path.dirname(os.path.abspath(__file__))
-    print(currentFolder)
     listFile = os.listdir(inputFolder)
     threads = []
 

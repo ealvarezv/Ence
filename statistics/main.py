@@ -4,9 +4,6 @@
 # Main function of the script
 
 # ################### IMPORT ####################
-import os
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
 from modules._constants import INPUT_FOLDER, TEMP_FOLDER, OUTPUT_FOLDER
 
 from modules.createJSON import createJSON
@@ -33,6 +30,6 @@ def main():
     print("\n#################### GAME OVER ####################\n")
 
 
-# ################### EJECUCION ####################
-# Ejecucion Script
+# ################### EJECUCIÓN ####################
+# Ejecución Script
 main()
