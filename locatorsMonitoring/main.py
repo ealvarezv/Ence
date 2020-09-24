@@ -68,7 +68,7 @@ def getStatus(i, xs, ys, ax, array, file):
     # plt.xlabel('Time')
     # plt.ylabel('Packets / Second')
 
-    print("[LOG] [getStatus] Analyzed Time: " + str(currentTime))
+    print("[LOG] [getStatus] Analyzed Time: " + str(datetime.fromtimestamp(currentTime)))
 
 
 # Function to print the result
