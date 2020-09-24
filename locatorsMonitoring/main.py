@@ -110,7 +110,7 @@ def main():
 
     while True:
         getStatus ("0", xs, ys, ax, arrayLocatorFailed, objFile)
-        time.sleep(10)
+        time.sleep(5)
 
         # ani = animation.FuncAnimation(fig, getStatus, fargs=(xs, ys, ax,
         #                             arrayLocatorFailed, objFile), interval=5000)

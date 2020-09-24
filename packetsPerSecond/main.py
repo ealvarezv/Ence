@@ -29,8 +29,6 @@ def printResult(i, xs, ys, ax, file):
 
     currentTime = datetime.fromtimestamp(time.time())
 
-    file.write(str(currentTime) + "," + str(packetsPerSecond) + "\n")
-
     xs.append(currentTime)
     ys.append(packetsPerSecond)
     ax.clear()
@@ -42,6 +40,9 @@ def printResult(i, xs, ys, ax, file):
     plt.xlabel('Time')
     plt.ylabel('Packets / Second')
 
+    file.write(str(currentTime) + "," + str(packetsPerSecond) + "\n")
+
+    print("[LOG] [printResult] " + str(currentTime) + ": " + str(round(packetsPerSecond,2)) + " pck/s")
 
 # Main Function
 def main():
@@ -63,7 +64,7 @@ def main():
 
     ani = animation.FuncAnimation(fig, printResult,
                                       fargs=(xs, ys, ax, objFile),
-                                      interval=1000)
+                                      interval=5000)
     plt.show()
 
 
