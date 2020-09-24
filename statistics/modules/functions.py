@@ -107,9 +107,18 @@ def processJSONFile(folder, file, numFile, queue, drawFileName):
             register["smoothedPositionAccuracy"])
         arraySmoothedColorPoint.append(accuracyColorPoint(
             register["smoothedPositionAccuracy"]))
-        arrayTSPosition.append(register["positionTS"])
-        arrayTSOutput.append(register["positionOutputTS"])
-        arrayTS.append(register["positionOutputTS"] - register["positionTS"])
+        try:
+            arrayTSPosition.append(register["positionTS"])
+        except:
+            pass
+        try:
+            arrayTSOutput.append(register["positionOutputTS"])
+        except:
+            pass
+        try:
+            arrayTS.append(register["positionOutputTS"] - register["positionTS"])
+        except:
+            pass
 
     allTags = True
     drawFileNameTag = drawFileName + ".png"
@@ -142,8 +151,9 @@ def processJSONFile(folder, file, numFile, queue, drawFileName):
         arraySmoothedPosition = []
         arraySmoothedAccuracy = []
         arraySmoothedColorPoint = []
-        arrayTSOutput = []
         arrayTSPosition = []
+        arrayTSOutput = []
+        arrayTS = []
 
         for register in parserFile:
             if register["name"] == tag:
@@ -162,8 +172,18 @@ def processJSONFile(folder, file, numFile, queue, drawFileName):
                     register["smoothedPositionAccuracy"])
                 arraySmoothedColorPoint.append(accuracyColorPoint(
                     register["smoothedPositionAccuracy"]))
-                arrayTSOutput.append(register["positionOutputTS"])
-                arrayTSPosition.append(register["positionTS"])
+                try:
+                    arrayTSPosition.append(register["positionTS"])
+                except:
+                    pass
+                try:
+                    arrayTSOutput.append(register["positionOutputTS"])
+                except:
+                    pass
+                try:
+                    arrayTS.append(register["positionOutputTS"] - register["positionTS"])
+                except:
+                    pass
 
         allTags = False
         drawFileNameTag = drawFileName + "_" + tag + ".png"
@@ -287,69 +307,78 @@ def printAccuracyPixel(array, totalAccuracy, outputFolder, drawFileName,
 # Function to print the results of the latency in a graph
 def printLatencyRaw(arrayPosition, arrayTS, file, drawFileName, allTags,
                     latency, levelLatency):
-    t = timeit.default_timer()
-    i = 0
-    for position in arrayPosition:
-        plt.plot(position[0], position[1],
-                 color=latencyColorPoint(arrayTS[i]), marker=MARKER)
-        i += 1
+    try:
+        t = timeit.default_timer()
+        i = 0
+        for position in arrayPosition:
+            plt.plot(position[0], position[1],
+                     color=latencyColorPoint(arrayTS[i]), marker=MARKER)
+            i += 1
 
-    plt.xlim(PLOT_X)
-    plt.ylim(PLOT_Y)
-    plt.axis('off')
-    plt.title(drawFileName.replace(".png", "") + "\nLatency(ms) [Medium: "
-              + str(round(latency[0], 2)) + " ms / Maximum: "
-              + str(latency[1]) + " ms / Minimum: " + str(latency[2]) + " ms]")
+        plt.xlim(PLOT_X)
+        plt.ylim(PLOT_Y)
+        plt.axis('off')
+        plt.title(drawFileName.replace(".png", "") + "\nLatency(ms) [Medium: "
+                  + str(round(latency[0], 2)) + " ms / Maximum: "
+                  + str(latency[1]) + " ms / Minimum: " + str(latency[2]) + " ms]")
 
-    texts = ["Level 1", "Level 2", "Level 3", "Level 4", "Level 5"]
-    colors = [LATENCY_COLOR_LEVEL1, LATENCY_COLOR_LEVEL2,
-              LATENCY_COLOR_LEVEL3, LATENCY_COLOR_LEVEL4,
-              LATENCY_COLOR_LEVEL5]
-    legendPatches = [plt.plot([], [], marker="o", ms=5, ls="", mec=None,
-                     color=colors[i])[0]
-                     for i in range(len(texts))]
-    plt.legend(legendPatches, levelLatency, loc="lower right",
-               frameon=False, fontsize=FONT_SIZE)
+        texts = ["Level 1", "Level 2", "Level 3", "Level 4", "Level 5"]
+        colors = [LATENCY_COLOR_LEVEL1, LATENCY_COLOR_LEVEL2,
+                  LATENCY_COLOR_LEVEL3, LATENCY_COLOR_LEVEL4,
+                  LATENCY_COLOR_LEVEL5]
+        legendPatches = [plt.plot([], [], marker="o", ms=5, ls="", mec=None,
+                         color=colors[i])[0]
+                         for i in range(len(texts))]
+        plt.legend(legendPatches, levelLatency, loc="lower right",
+                   frameon=False, fontsize=FONT_SIZE)
 
-    poly_l = get_areas()
-    for i in range(len(poly_l)):
-        plt.plot(*poly_l[i][1].exterior.xy, 'k')
+        poly_l = get_areas()
+        for i in range(len(poly_l)):
+            plt.plot(*poly_l[i][1].exterior.xy, 'k')
 
-    varsDrawFolder = drawFileName.split("_")
-    if allTags:
-        drawFolder = OUTPUT_FOLDER
-    else:
-        drawFolder = (OUTPUT_FOLDER + varsDrawFolder[0] + "_"
-                      + varsDrawFolder[1] + "_" + varsDrawFolder[2] + "/")
+        varsDrawFolder = drawFileName.split("_")
+        if allTags:
+            drawFolder = OUTPUT_FOLDER
+        else:
+            drawFolder = (OUTPUT_FOLDER + varsDrawFolder[0] + "_"
+                          + varsDrawFolder[1] + "_" + varsDrawFolder[2] + "/")
 
-    plt.savefig((drawFolder + "Latency_" + drawFileName), dpi=200)
-    plt.clf()
-    print("[LOG] [printLatencyRaw]" + drawFileName
-          + " Latency Created / Time: "
-          + str(round((timeit.default_timer()-t), 2)))
-
+        plt.savefig((drawFolder + "Latency_" + drawFileName), dpi=200)
+        plt.clf()
+        print("[LOG] [printLatencyRaw]" + drawFileName
+              + " Latency Created / Time: "
+              + str(round((timeit.default_timer()-t), 2)))
+    except:
+        print("[LOG] [printLatencyRaw]" + drawFileName
+              + " Latency Not Created / Time: "
+              + str(round((timeit.default_timer()-t), 2)))
 
 # Function to print the results of the latency histogram in a graph
 def printLatencyHistogram(arrayTS, file, drawFileName, allTags, latency):
-    t = timeit.default_timer()
-    plt.hist(arrayTS, color='blue', edgecolor='black', bins=int(180/5))
+    try:
+        t = timeit.default_timer()
+        plt.hist(arrayTS, color='blue', edgecolor='black', bins=int(180/5))
 
-    plt.title(drawFileName.replace(".png", "") + "\nLatency(ms) [Medium: "
-              + str(round(latency[0], 2)) + " ms / Maximum: "
-              + str(latency[1]) + " ms / Minimum: " + str(latency[2]) + " ms]")
+        plt.title(drawFileName.replace(".png", "") + "\nLatency(ms) [Medium: "
+                  + str(round(latency[0], 2)) + " ms / Maximum: "
+                  + str(latency[1]) + " ms / Minimum: " + str(latency[2]) + " ms]")
 
-    varsDrawFolder = drawFileName.split("_")
-    if allTags:
-        drawFolder = OUTPUT_FOLDER
-    else:
-        drawFolder = (OUTPUT_FOLDER + varsDrawFolder[0] + "_"
-                      + varsDrawFolder[1] + "_" + varsDrawFolder[2] + "/")
+        varsDrawFolder = drawFileName.split("_")
+        if allTags:
+            drawFolder = OUTPUT_FOLDER
+        else:
+            drawFolder = (OUTPUT_FOLDER + varsDrawFolder[0] + "_"
+                          + varsDrawFolder[1] + "_" + varsDrawFolder[2] + "/")
 
-    plt.savefig((drawFolder + "Histogram_" + drawFileName), dpi=200)
-    plt.clf()
-    print("[LOG] [printLatencyHistogram]" + drawFileName
-          + " Histogram Created / Time: "
-          + str(round((timeit.default_timer()-t), 2)))
+        plt.savefig((drawFolder + "Histogram_" + drawFileName), dpi=200)
+        plt.clf()
+        print("[LOG] [printLatencyHistogram]" + drawFileName
+              + " Histogram Created / Time: "
+              + str(round((timeit.default_timer()-t), 2)))
+    except:
+        print("[LOG] [printLatencyHistogram]" + drawFileName
+              + " Histogram Not Created / Time: "
+              + str(round((timeit.default_timer()-t), 2)))
 
 
 # Function to create the point with the correct colour
@@ -510,8 +539,11 @@ def calculateLevelLatency(arrayTS):
 
 # Function to calculate the latency
 def calculateLatency(arrayTS):
-    return (sum(arrayTS) / float(len(arrayTS)), max(arrayTS),
+    try:
+        return (sum(arrayTS) / float(len(arrayTS)), max(arrayTS),
             min(arrayTS))
+    except:
+        return ("N/A","N/A","N/A")
 
 
 # Function to create the grid

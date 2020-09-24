@@ -7,7 +7,7 @@
 import json
 import os
 import time
-import urllib
+import urllib.request
 
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
@@ -19,7 +19,7 @@ from datetime import datetime
 # Function to print the packets per second sequence
 def printResult(i, xs, ys, ax, file):
     url = "http://192.168.123.124:9090/qpe/getPEInfo?humanReadable=True"
-    response = urllib.urlopen(url)
+    response = urllib.request.urlopen(url)
     data = json.loads(response.read())
     packetsPerSecond = data["positioningEngine"]["packetsPerSecond"]
 
@@ -51,11 +51,10 @@ def main():
     objFile = open(currentFolder + "/_output/PacketsPerSecond"
                    + str(currentTime) + ".txt", "w")
 
-    while True:
-        ani = animation.FuncAnimation(fig, printResult,
+    ani = animation.FuncAnimation(fig, printResult,
                                       fargs=(xs, ys, ax, objFile),
                                       interval=1000)
-        plt.show()
+    plt.show()
 
 
 # ################### EXECUTION ####################

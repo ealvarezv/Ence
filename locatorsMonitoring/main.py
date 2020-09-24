@@ -7,7 +7,7 @@
 import json
 import os
 import time
-import urllib
+import urllib.request
 
 import matplotlib.pyplot as plt
 
@@ -22,7 +22,7 @@ def getStatus(file):
     currentTime = time.time()
 
     url = "http://192.168.123.124:9090/qpe/getLocatorInfo?humanReadable=True"
-    response = urllib.urlopen(url)
+    response = urllib.request.urlopen(url)
     data = json.loads(response.read())
 
     i = 0
@@ -50,7 +50,7 @@ def getStatus(file):
         i += 1
 
     file.write("\n")
-    print("[LOG] [getStatus] Analyzed Time: " + currentTime)
+    print("[LOG] [getStatus] Analyzed Time: " + str(currentTime))
 
 
 # Function to print the result
