@@ -15,6 +15,10 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 
 
+# ################### CONSTANTS ####################
+OUTPUT_FOLDER = "_output/"
+
+
 # ################### FUNCTIONS ####################
 # Function to print the packets per second sequence
 def printResult(i, xs, ys, ax, file):
@@ -41,15 +45,21 @@ def printResult(i, xs, ys, ax, file):
 
 # Main Function
 def main():
+    print("\n#################### START ####################")
+
+    currentTime = time.time()
+
+    currentFolder = os.path.dirname(os.path.abspath(__file__))
+    fileName = (currentFolder + "/" + OUTPUT_FOLDER + "/PacketsPerSecond"
+                + str(currentTime) + ".txt")
+    objFile = open(fileName, "w")
+
+    arrayLocatorFailed = []
+
     fig = plt.figure(1)
     ax = fig.add_subplot(1, 1, 1)
     xs = []
     ys = []
-
-    currentTime = datetime.fromtimestamp(time.time())
-    currentFolder = os.path.dirname(os.path.abspath(__file__))
-    objFile = open(currentFolder + "/_output/PacketsPerSecond"
-                   + str(currentTime) + ".txt", "w")
 
     ani = animation.FuncAnimation(fig, printResult,
                                       fargs=(xs, ys, ax, objFile),
