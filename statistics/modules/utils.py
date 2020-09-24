@@ -79,10 +79,10 @@ def dict_constructor(raw_list, file_config):
     list_polygons = []
     for i in range(len(info)):
         # Coordinates with translation to Quuppa center
-        list = [etrs69ToQuuppa([float(raw_list[j][0]), float(raw_list[j][1])],
+        l = [etrs69ToQuuppa([float(raw_list[j][0]), float(raw_list[j][1])],
                                file_config) for j in list(
                                     range(aux_list[i], aux_list[i+1]))]
-        list_polygons.append(list)
+        list_polygons.append(l)
 
     areas = {raw_list[i][2]: {'Geometry': shapely.geometry.Polygon(j),
                               'Number_vertices': info[k][1],
@@ -145,4 +145,5 @@ def d_get(dictionary, keys, default=None):
 if __name__ == '__main__':
     file_config = read_json(file_name="/configuration.txt")
     file_areas = areas_ENCE(file_config)
+    print(file_areas)
     plot_areas(file_areas)
