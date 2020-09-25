@@ -62,10 +62,14 @@ def main():
     xs = []
     ys = []
 
-    ani = animation.FuncAnimation(fig, printResult,
-                                      fargs=(xs, ys, ax, objFile),
-                                      interval=5000)
-    plt.show()
+    while True:
+        printResult("0", xs, ys, ax, objFile)
+        time.sleep(5)
+
+    # ani = animation.FuncAnimation(fig, printResult,
+    #                               fargs=(xs, ys, ax, objFile),
+    #                               interval=5000)
+    # plt.show()
 
 
 # ################### EXECUTION ####################

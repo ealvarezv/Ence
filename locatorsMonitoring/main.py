@@ -7,16 +7,24 @@
 import json
 import os
 import time
+import smtplib
+import ssl
 import urllib.request
 
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 
 from datetime import datetime
+from email.mime.text import MIMEText
 
 
 # ################### CONSTANTS ####################
 OUTPUT_FOLDER = "_output/"
+
+MAIL_PORT = 465
+MAIL_SERVER = "smtp.gmail.com"
+MAIL_USER = "enriqueavtest@gmail.com"
+MAIL_PASS = "anonymous1!"
 
 
 # ################### FUNCTIONS ####################
@@ -47,13 +55,12 @@ def getStatus(i, xs, ys, ax, array, file):
         timeLastGoodPacketTS = timePacket - locatorLastGoodPacketTS
         timeLastPacketTS = timePacket - locatorLastPacketTS
 
-        analyzeResult(locatorName, locatorStatus, timePacket, array)
+        analyzeResult(locatorName, locatorStatus, currentTime, array)
 
         file.write(str(datetime.fromtimestamp(currentTime)) + "," + locatorName + "," + locatorStatus
                    + "," + str(timeLastGoodPacketTS) + ","
                    + str(timeLastPacketTS) + "\n")
         i += 1
-
 
     file.write("\n")
 
@@ -76,19 +83,45 @@ def analyzeResult(name, status, time, array):
     if name in array:
         if status == "ok":
             array.remove(name)
-            sendAlarm(name, status, time)
+            sendAlarm(name, status, datetime.fromtimestamp(time))
     else:
         if status != "ok":
             array.append(name)
-            sendAlarm(name, status, time)
+            sendAlarm(name, status, datetime.fromtimestamp(time))
 
 
 def sendAlarm(name, status, time):
+    sender = "Onesite Motion Worker <enriqueavtest@gmail.com>"
+    receiver = "enrique.alvarez.villace@gmail.com"
+    message = f"""
+        Site: Ence HUV
+        Locator: {name}
+        Status: {status}
+        Timestamp: {time}"""
+    message = MIMEText(message)
+    message["From"] = "Onesite Motion Worker <from@smtp.mailtrap.io>"
+    message["To"] = "enrique.alvarez.villace@gmail.com"
+
     if status == "ok":
+        message["Subject"] = ("Ence HUV: Up Alarm: " + name + " / " + status)
         print("Up Alarm: " + name + " / " + status + " / " + str(time))
     else:
+        message["Subject"] = ("Ence HUV: Down Alarm: " + name + " / " + status)
         print("Down Alarm: " + name + " / " + status + " / " + str(time))
 
+    try:
+        with smtplib.SMTP_SSL(MAIL_SERVER, MAIL_PORT) as server:
+            # server.set_debuglevel(1)
+            server.login(MAIL_USER, MAIL_PASS)
+            server.sendmail(sender, receiver, message.as_string())
+            server.close()
+            print('Sent')
+    except smtplib.SMTPServerDisconnected:
+        print('Failed to connect to the server. Wrong user/password?')
+    except smtplib.SMTPException as e:
+        print('SMTP error occurred: ' + str(e))
+    except Exception as e:
+        print('everything else' + str(e))
 
 # Main Function
 def main():
