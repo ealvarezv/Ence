@@ -49,7 +49,7 @@ def getStatus(i, xs, ys, ax, array, file):
 
         analyzeResult(locatorName, locatorStatus, timePacket, array)
 
-        file.write(str(currentTime) + "," + locatorName + "," + locatorStatus
+        file.write(str(datetime.fromtimestamp(currentTime)) + "," + locatorName + "," + locatorStatus
                    + "," + str(timeLastGoodPacketTS) + ","
                    + str(timeLastPacketTS) + "\n")
         i += 1
