@@ -48,38 +48,24 @@ def getStatus(i, xs, ys, ax, array, file):
             locatorLastGoodPacketTS = data["locators"][i]["lastGoodPacketTS"]
 
         if data["locators"][i]["lastPacketTS"] is None:
-            locatorLastGoodPacketTS = 0
+            locatorLastPacketTS = 0
         else:
             locatorLastPacketTS = data["locators"][i]["lastPacketTS"]
 
         timeLastGoodPacketTS = timePacket - locatorLastGoodPacketTS
         timeLastPacketTS = timePacket - locatorLastPacketTS
 
-        analyzeResult(locatorName, locatorStatus, currentTime, array)
+        analyzeResult(locatorName, locatorStatus, currentTime, array, file)
 
-        file.write(str(datetime.fromtimestamp(currentTime)) + "," + locatorName + "," + locatorStatus
-                   + "," + str(timeLastGoodPacketTS) + ","
-                   + str(timeLastPacketTS) + "\n")
         i += 1
 
-    file.write("\n")
-
-    # xs.append(datetime.fromtimestamp(currentTime))
-    # ys.append("")
-    # ax.clear()
-    # ax.plot(xs, ys)
-    #
-    # plt.xticks(rotation=45, ha='right')
-    # plt.subplots_adjust(bottom=0.30)
-    # plt.title('Test')
-    # plt.xlabel('Time')
-    # plt.ylabel('Packets / Second')
-
+    file.write("[LOG] [getStatus] Analyzed Time: " + str(datetime.fromtimestamp(currentTime)) + "\n")
+    file.flush()
     print("[LOG] [getStatus] Analyzed Time: " + str(datetime.fromtimestamp(currentTime)))
 
 
 # Function to print the result
-def analyzeResult(name, status, time, array):
+def analyzeResult(name, status, time, array, file):
     if name in array:
         if status == "ok":
             array.remove(name)
@@ -90,7 +76,7 @@ def analyzeResult(name, status, time, array):
             sendAlarm(name, status, datetime.fromtimestamp(time))
 
 
-def sendAlarm(name, status, time):
+def sendAlarm(name, status, time, file):
     sender = "Onesite Motion Worker <enriqueavtest@gmail.com>"
     receiver = "enrique.alvarez.villace@gmail.com"
     message = f"""
@@ -104,9 +90,13 @@ def sendAlarm(name, status, time):
 
     if status == "ok":
         message["Subject"] = ("Ence HUV: Up Alarm: " + name + " / " + status)
+        file.write("Up Alarm: " + name + " / " + status + " / " + str(time) + "\n")
+        file.flush()
         print("Up Alarm: " + name + " / " + status + " / " + str(time))
     else:
         message["Subject"] = ("Ence HUV: Down Alarm: " + name + " / " + status)
+        file.write("Down Alarm: " + name + " / " + status + " / " + str(time) + "\n")
+        file.flush()
         print("Down Alarm: " + name + " / " + status + " / " + str(time))
 
     try:
@@ -143,7 +133,7 @@ def main():
 
     while True:
         getStatus ("0", xs, ys, ax, arrayLocatorFailed, objFile)
-        time.sleep(5)
+        time.sleep(30)
 
         # ani = animation.FuncAnimation(fig, getStatus, fargs=(xs, ys, ax,
         #                             arrayLocatorFailed, objFile), interval=5000)
