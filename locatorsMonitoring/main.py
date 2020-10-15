@@ -69,11 +69,11 @@ def analyzeResult(name, status, time, array, file):
     if name in array:
         if status == "ok":
             array.remove(name)
-            sendAlarm(name, status, datetime.fromtimestamp(time))
+            sendAlarm(name, status, datetime.fromtimestamp(time), file)
     else:
         if status != "ok":
             array.append(name)
-            sendAlarm(name, status, datetime.fromtimestamp(time))
+            sendAlarm(name, status, datetime.fromtimestamp(time), file)
 
 
 def sendAlarm(name, status, time, file):
