@@ -4,6 +4,11 @@
 # Main function of the script
 
 # ################### IMPORT ####################
+import paramiko
+from scp import SCPClient
+
+
+
 import json
 import os
 import time
@@ -48,35 +53,49 @@ def getStatus(i, xs, ys, ax, array, file):
             locatorLastGoodPacketTS = data["locators"][i]["lastGoodPacketTS"]
 
         if data["locators"][i]["lastPacketTS"] is None:
-            locatorLastPacketTS = 0
+            locatorLastGoodPacketTS = 0
         else:
             locatorLastPacketTS = data["locators"][i]["lastPacketTS"]
 
         timeLastGoodPacketTS = timePacket - locatorLastGoodPacketTS
         timeLastPacketTS = timePacket - locatorLastPacketTS
 
-        analyzeResult(locatorName, locatorStatus, currentTime, array, file)
+        analyzeResult(locatorName, locatorStatus, currentTime, array)
 
+        file.write(str(datetime.fromtimestamp(currentTime)) + "," + locatorName + "," + locatorStatus
+                   + "," + str(timeLastGoodPacketTS) + ","
+                   + str(timeLastPacketTS) + "\n")
         i += 1
 
-    file.write("[LOG] [getStatus] Analyzed Time: " + str(datetime.fromtimestamp(currentTime)) + "\n")
-    file.flush()
+    file.write("\n")
+
+    # xs.append(datetime.fromtimestamp(currentTime))
+    # ys.append("")
+    # ax.clear()
+    # ax.plot(xs, ys)
+    #
+    # plt.xticks(rotation=45, ha='right')
+    # plt.subplots_adjust(bottom=0.30)
+    # plt.title('Test')
+    # plt.xlabel('Time')
+    # plt.ylabel('Packets / Second')
+
     print("[LOG] [getStatus] Analyzed Time: " + str(datetime.fromtimestamp(currentTime)))
 
 
 # Function to print the result
-def analyzeResult(name, status, time, array, file):
+def analyzeResult(name, status, time, array):
     if name in array:
         if status == "ok":
             array.remove(name)
-            sendAlarm(name, status, datetime.fromtimestamp(time), file)
+            sendAlarm(name, status, datetime.fromtimestamp(time))
     else:
         if status != "ok":
             array.append(name)
-            sendAlarm(name, status, datetime.fromtimestamp(time), file)
+            sendAlarm(name, status, datetime.fromtimestamp(time))
 
 
-def sendAlarm(name, status, time, file):
+def sendAlarm(name, status, time):
     sender = "Onesite Motion Worker <enriqueavtest@gmail.com>"
     receiver = "enrique.alvarez.villace@gmail.com"
     message = f"""
@@ -90,13 +109,9 @@ def sendAlarm(name, status, time, file):
 
     if status == "ok":
         message["Subject"] = ("Ence HUV: Up Alarm: " + name + " / " + status)
-        file.write("Up Alarm: " + name + " / " + status + " / " + str(time) + "\n")
-        file.flush()
         print("Up Alarm: " + name + " / " + status + " / " + str(time))
     else:
         message["Subject"] = ("Ence HUV: Down Alarm: " + name + " / " + status)
-        file.write("Down Alarm: " + name + " / " + status + " / " + str(time) + "\n")
-        file.flush()
         print("Down Alarm: " + name + " / " + status + " / " + str(time))
 
     try:
@@ -113,32 +128,48 @@ def sendAlarm(name, status, time, file):
     except Exception as e:
         print('everything else' + str(e))
 
+
+def createSSHClient(server, port, user, password):
+    client = paramiko.SSHClient()
+    client.load_system_host_keys()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    client.connect(server, port, user, password)
+    return client
+
+
 # Main Function
 def main():
     print("\n#################### START ####################")
 
-    currentTime = time.time()
+    ssh = createSSHClient("89.107.49.125", "49738", "ence", "EIVmNP3a5K")
+    scp = SCPClient(ssh.get_transport())
 
-    currentFolder = os.path.dirname(os.path.abspath(__file__))
-    fileName = (currentFolder + "/" + OUTPUT_FOLDER + "/LocatorStatus"
-                + str(currentTime) + ".txt")
-    objFile = open(fileName, "w")
+    scp.put("./test.txt")
+    scp.close()
+    ssh.close()
 
-    arrayLocatorFailed = []
-
-    fig = plt.figure(1)
-    ax = fig.add_subplot(1, 1, 1)
-    xs = []
-    ys = []
-
-    while True:
-        getStatus ("0", xs, ys, ax, arrayLocatorFailed, objFile)
-        time.sleep(30)
-
-        # ani = animation.FuncAnimation(fig, getStatus, fargs=(xs, ys, ax,
-        #                             arrayLocatorFailed, objFile), interval=5000)
-        #
-        # plt.show()
+    # currentTime = time.time()
+    #
+    # currentFolder = os.path.dirname(os.path.abspath(__file__))
+    # fileName = (currentFolder + "/" + OUTPUT_FOLDER + "/LocatorStatus"
+    #             + str(currentTime) + ".txt")
+    # objFile = open(fileName, "w")
+    #
+    # arrayLocatorFailed = []
+    #
+    # fig = plt.figure(1)
+    # ax = fig.add_subplot(1, 1, 1)
+    # xs = []
+    # ys = []
+    #
+    # while True:
+    #     getStatus ("0", xs, ys, ax, arrayLocatorFailed, objFile)
+    #     time.sleep(5)
+    #
+    #     # ani = animation.FuncAnimation(fig, getStatus, fargs=(xs, ys, ax,
+    #     #                             arrayLocatorFailed, objFile), interval=5000)
+    #     #
+    #     # plt.show()
 
     print("\n#################### GAME OVER ####################\n")
 
