@@ -4,38 +4,34 @@
 # Main function of the script
 
 # ################### IMPORT ####################
-import paramiko
-from scp import SCPClient
-
-
-
 import json
 import os
+import paramiko
 import time
-import smtplib
-import ssl
 import urllib.request
 
-import matplotlib.animation as animation
-import matplotlib.pyplot as plt
-
+from scp import SCPClient
 from datetime import datetime
-from email.mime.text import MIMEText
 
 
 # ################### CONSTANTS ####################
 OUTPUT_FOLDER = "_output/"
 
-MAIL_PORT = 465
-MAIL_SERVER = "smtp.gmail.com"
-MAIL_USER = "enriqueavtest@gmail.com"
-MAIL_PASS = "anonymous1!"
+SERVER_PORT = 49738
+SERVER_IP = "89.107.49.125"
+SERVER_USER = "ence"
+SERVER_PASS = "EIVmNP3a5K"
 
 
 # ################### FUNCTIONS ####################
 # Function to know the status of each locator
 def getStatus(i, xs, ys, ax, array, file):
     currentTime = time.time()
+
+    currentFolder = os.path.dirname(os.path.abspath(__file__))
+    fileName = (currentFolder + "/" + OUTPUT_FOLDER + "/LocatorStatus"
+                + str(currentTime) + ".txt")
+    objFile = open(fileName, "w")
 
     url = "http://192.168.123.124:9090/qpe/getLocatorInfo?humanReadable=True"
     response = urllib.request.urlopen(url)
@@ -60,75 +56,20 @@ def getStatus(i, xs, ys, ax, array, file):
         timeLastGoodPacketTS = timePacket - locatorLastGoodPacketTS
         timeLastPacketTS = timePacket - locatorLastPacketTS
 
-        analyzeResult(locatorName, locatorStatus, currentTime, array)
-
-        file.write(str(datetime.fromtimestamp(currentTime)) + "," + locatorName + "," + locatorStatus
-                   + "," + str(timeLastGoodPacketTS) + ","
-                   + str(timeLastPacketTS) + "\n")
+        objFile.write(locatorName + "," + locatorStatus
+                      + "," + str(timeLastGoodPacketTS) + ","
+                      + str(timeLastPacketTS) + "\n")
         i += 1
 
-    file.write("\n")
+    objFile.write("\n")
+    objFile.close()
 
-    # xs.append(datetime.fromtimestamp(currentTime))
-    # ys.append("")
-    # ax.clear()
-    # ax.plot(xs, ys)
-    #
-    # plt.xticks(rotation=45, ha='right')
-    # plt.subplots_adjust(bottom=0.30)
-    # plt.title('Test')
-    # plt.xlabel('Time')
-    # plt.ylabel('Packets / Second')
+    return objFile
 
     print("[LOG] [getStatus] Analyzed Time: " + str(datetime.fromtimestamp(currentTime)))
 
 
-# Function to print the result
-def analyzeResult(name, status, time, array):
-    if name in array:
-        if status == "ok":
-            array.remove(name)
-            sendAlarm(name, status, datetime.fromtimestamp(time))
-    else:
-        if status != "ok":
-            array.append(name)
-            sendAlarm(name, status, datetime.fromtimestamp(time))
-
-
-def sendAlarm(name, status, time):
-    sender = "Onesite Motion Worker <enriqueavtest@gmail.com>"
-    receiver = "enrique.alvarez.villace@gmail.com"
-    message = f"""
-        Site: Ence HUV
-        Locator: {name}
-        Status: {status}
-        Timestamp: {time}"""
-    message = MIMEText(message)
-    message["From"] = "Onesite Motion Worker <from@smtp.mailtrap.io>"
-    message["To"] = "enrique.alvarez.villace@gmail.com"
-
-    if status == "ok":
-        message["Subject"] = ("Ence HUV: Up Alarm: " + name + " / " + status)
-        print("Up Alarm: " + name + " / " + status + " / " + str(time))
-    else:
-        message["Subject"] = ("Ence HUV: Down Alarm: " + name + " / " + status)
-        print("Down Alarm: " + name + " / " + status + " / " + str(time))
-
-    try:
-        with smtplib.SMTP_SSL(MAIL_SERVER, MAIL_PORT) as server:
-            # server.set_debuglevel(1)
-            server.login(MAIL_USER, MAIL_PASS)
-            server.sendmail(sender, receiver, message.as_string())
-            server.close()
-            print('Sent')
-    except smtplib.SMTPServerDisconnected:
-        print('Failed to connect to the server. Wrong user/password?')
-    except smtplib.SMTPException as e:
-        print('SMTP error occurred: ' + str(e))
-    except Exception as e:
-        print('everything else' + str(e))
-
-
+# Function to create SSH Cliente
 def createSSHClient(server, port, user, password):
     client = paramiko.SSHClient()
     client.load_system_host_keys()
@@ -141,35 +82,13 @@ def createSSHClient(server, port, user, password):
 def main():
     print("\n#################### START ####################")
 
-    ssh = createSSHClient("89.107.49.125", "49738", "ence", "EIVmNP3a5K")
-    scp = SCPClient(ssh.get_transport())
+    while True:
+        ssh = createSSHClient("89.107.49.125", "49738", "ence", "EIVmNP3a5K")
+        scp = SCPClient(ssh.get_transport())
 
-    scp.put("./test.txt")
-    scp.close()
-    ssh.close()
-
-    # currentTime = time.time()
-    #
-    # currentFolder = os.path.dirname(os.path.abspath(__file__))
-    # fileName = (currentFolder + "/" + OUTPUT_FOLDER + "/LocatorStatus"
-    #             + str(currentTime) + ".txt")
-    # objFile = open(fileName, "w")
-    #
-    # arrayLocatorFailed = []
-    #
-    # fig = plt.figure(1)
-    # ax = fig.add_subplot(1, 1, 1)
-    # xs = []
-    # ys = []
-    #
-    # while True:
-    #     getStatus ("0", xs, ys, ax, arrayLocatorFailed, objFile)
-    #     time.sleep(5)
-    #
-    #     # ani = animation.FuncAnimation(fig, getStatus, fargs=(xs, ys, ax,
-    #     #                             arrayLocatorFailed, objFile), interval=5000)
-    #     #
-    #     # plt.show()
+        scp.put(getStatus())
+        scp.close()
+        ssh.close()
 
     print("\n#################### GAME OVER ####################\n")
 
