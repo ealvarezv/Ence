@@ -83,7 +83,7 @@ def main():
     print("\n#################### START ####################")
 
     while True:
-        ssh = createSSHClient("89.107.49.125", "49738", "ence", "EIVmNP3a5K")
+        ssh = createSSHClient(SERVER_IP, SERVER_PORT, SERVER_USER, SERVER_PASS)
         scp = SCPClient(ssh.get_transport())
 
         scp.put(getStatus())
