@@ -30,7 +30,7 @@ def getStatus():
 
     currentFolder = os.path.dirname(os.path.abspath(__file__))
     fileName = (currentFolder + "/" + OUTPUT_FOLDER + "/locatorStatus"
-                + str(currentTime) + ".txt")
+                + str(round(currentTime)) + ".csv")
     objFile = open(fileName, "w")
 
     url = "http://192.168.123.124:9090/qpe/getLocatorInfo?humanReadable=True"
@@ -66,7 +66,8 @@ def getStatus():
 
     return objFile
 
-    print("[LOG] [getStatus] Analyzed Time: " + str(datetime.fromtimestamp(currentTime)))
+    print("[LOG] [getStatus] Analyzed Time: "
+          + str(datetime.fromtimestamp(currentTime)))
 
 
 # Function to create SSH Cliente

@@ -1,3 +1,0 @@
-[LOG] [getStatus] Analyzed Time: 2020-10-15 10:23:59.933614
-[LOG] [getStatus] Analyzed Time: 2020-10-15 10:24:29.971256
-[LOG] [getStatus] Analyzed Time: 2020-10-15 10:25:00.003206
