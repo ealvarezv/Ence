@@ -27,7 +27,7 @@ AP_NUMBER = 20
 
 # ################### FUNCTIONS ####################
 # Function to know the status of each AP
-def getAPStatus(time):
+def getAPStatus(currentTime):
     currentFolder = os.path.dirname(os.path.abspath(__file__))
     fileAPName = (currentFolder + "/" + OUTPUT_FOLDER + "/APStatus"
                   + str(round(time)) + ".csv")
@@ -47,13 +47,13 @@ def getAPStatus(time):
     objAPFile.close()
 
     print("[LOG] [getAPStatus] Analyzed Time: "
-          + str(datetime.fromtimestamp(time)))
+          + str(datetime.fromtimestamp(currentTime)))
 
     return fileAPName
 
 
 # Function to know the status of each locator
-def getLocatorStatus(time):
+def getLocatorStatus(currentTime):
     currentFolder = os.path.dirname(os.path.abspath(__file__))
     fileLocatorName = (currentFolder + "/" + OUTPUT_FOLDER + "/locatorStatus"
                        + str(round(time)) + ".csv")
@@ -93,7 +93,7 @@ def getLocatorStatus(time):
     objFile.close()
 
     print("[LOG] [getLocatorStatus] Analyzed Time: "
-          + str(datetime.fromtimestamp(time)))
+          + str(datetime.fromtimestamp(currentTime)))
 
     return fileLocatorName
 
