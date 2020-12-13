@@ -7,6 +7,7 @@
 import json
 import os
 import paramiko
+import sys
 import time
 import urllib.request
 
@@ -64,7 +65,7 @@ def getStatus():
     objFile.write("\n")
     objFile.close()
 
-    return objFile
+    return fileName
 
     print("[LOG] [getStatus] Analyzed Time: "
           + str(datetime.fromtimestamp(currentTime)))
