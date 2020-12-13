@@ -33,6 +33,7 @@ def getAPStatus(currentTime):
                   + str(round(currentTime)) + ".csv")
     objAPFile = open(fileAPName, "w")
 
+    objAPFile.write("{},{},{}\n".format("AP Name", "AP IP", "AP Status"))
     for i in range(1, AP_NUMBER + 1):
         APName = ("AP-" + str(i))
         ipAddress = ("192.168.123." + str(i))
@@ -57,11 +58,16 @@ def getLocatorStatus(currentTime):
     currentFolder = os.path.dirname(os.path.abspath(__file__))
     fileLocatorName = (currentFolder + "/" + OUTPUT_FOLDER + "/locatorStatus"
                        + str(round(currentTime)) + ".csv")
-    objFile = open(fileLocatorName, "w")
+    objLocatorFile = open(fileLocatorName, "w")
 
     url = "http://192.168.123.124:9090/qpe/getLocatorInfo?humanReadable=True"
     response = urllib.request.urlopen(url)
     data = json.loads(response.read())
+
+    objLocatorFile.write("{},{},{},{},{},{},{}\n".format("Locator Name",
+                         "Locator Status", "Locator Mode", "Locator IP",
+                         "Locator Sensitivity", "timeLastGoodPacketTS",
+                         "timeLastPacketTS"))
 
     i = 0
     while i < len(data["locators"]):
@@ -85,12 +91,12 @@ def getLocatorStatus(currentTime):
         timeLastGoodPacketTS = timePacket - locatorLastGoodPacketTS
         timeLastPacketTS = timePacket - locatorLastPacketTS
 
-        objFile.write("{},{},{},{},{},{},{}\n".format(locatorName,
-                      locatorStatus, locatorMode,
-                      locatorIP, locatorSensitivity, str(timeLastGoodPacketTS),
-                      str(timeLastPacketTS)))
+        objLocatorFile.write("{},{},{},{},{},{},{}\n".format(locatorName,
+                             locatorStatus, locatorMode,
+                             locatorIP, locatorSensitivity,
+                             str(timeLastGoodPacketTS), str(timeLastPacketTS)))
         i += 1
-    objFile.close()
+    objLocatorFile.close()
 
     print("[LOG] [getLocatorStatus] Analyzed Time: "
           + str(datetime.fromtimestamp(currentTime)))
@@ -116,8 +122,8 @@ def main():
         ssh = createSSHClient(SERVER_IP, SERVER_PORT, SERVER_USER, SERVER_PASS)
         scp = SCPClient(ssh.get_transport())
 
-        scp.put(getLocatorStatus(currentTime))
         scp.put(getAPStatus(currentTime))
+        scp.put(getLocatorStatus(currentTime))
 
         scp.close()
         ssh.close()
