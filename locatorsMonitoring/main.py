@@ -30,7 +30,7 @@ AP_NUMBER = 20
 def getAPStatus(currentTime):
     currentFolder = os.path.dirname(os.path.abspath(__file__))
     fileAPName = (currentFolder + "/" + OUTPUT_FOLDER + "/APStatus"
-                  + str(round(time)) + ".csv")
+                  + str(round(currentTime)) + ".csv")
     objAPFile = open(fileAPName, "w")
 
     for i in range(1, AP_NUMBER + 1):
@@ -56,7 +56,7 @@ def getAPStatus(currentTime):
 def getLocatorStatus(currentTime):
     currentFolder = os.path.dirname(os.path.abspath(__file__))
     fileLocatorName = (currentFolder + "/" + OUTPUT_FOLDER + "/locatorStatus"
-                       + str(round(time)) + ".csv")
+                       + str(round(currentTime)) + ".csv")
     objFile = open(fileLocatorName, "w")
 
     url = "http://192.168.123.124:9090/qpe/getLocatorInfo?humanReadable=True"
