@@ -34,8 +34,8 @@ def getAPStatus(currentTime):
     objAPFile = open(fileAPName, "w")
 
     for i in range(1, AP_NUMBER + 1):
-        APName = ("AP-" + i)
-        ipAddress = ("192.168.123." + i)
+        APName = ("AP-" + str(i))
+        ipAddress = ("192.168.123." + str(i))
         response = os.system("ping -c 1 " + ipAddress)
         if response == 0:
             APStatus = "OK"
