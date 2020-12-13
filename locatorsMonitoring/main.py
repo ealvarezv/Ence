@@ -54,11 +54,9 @@ def getAPStatus(time):
 
 # Function to know the status of each locator
 def getLocatorStatus(time):
-    currentTime = time.time()
-
     currentFolder = os.path.dirname(os.path.abspath(__file__))
     fileLocatorName = (currentFolder + "/" + OUTPUT_FOLDER + "/locatorStatus"
-                       + str(round(currentTime)) + ".csv")
+                       + str(round(time)) + ".csv")
     objFile = open(fileLocatorName, "w")
 
     url = "http://192.168.123.124:9090/qpe/getLocatorInfo?humanReadable=True"
@@ -95,7 +93,7 @@ def getLocatorStatus(time):
     objFile.close()
 
     print("[LOG] [getLocatorStatus] Analyzed Time: "
-          + str(datetime.fromtimestamp(currentTime)))
+          + str(datetime.fromtimestamp(time)))
 
     return fileLocatorName
 
