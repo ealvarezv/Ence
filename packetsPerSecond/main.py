@@ -29,18 +29,19 @@ def printResult(i, xs, ys, ax, file):
 
     currentTime = datetime.fromtimestamp(time.time())
 
-    xs.append(currentTime)
-    ys.append(packetsPerSecond)
-    ax.clear()
-    ax.plot(xs, ys)
-
-    plt.xticks(rotation=45, ha='right')
-    plt.subplots_adjust(bottom=0.30)
-    plt.title('Test')
-    plt.xlabel('Time')
-    plt.ylabel('Packets / Second')
+    # xs.append(currentTime)
+    # ys.append(packetsPerSecond)
+    # ax.clear()
+    # ax.plot(xs, ys)
+    #
+    # plt.xticks(rotation=45, ha='right')
+    # plt.subplots_adjust(bottom=0.30)
+    # plt.title('Test')
+    # plt.xlabel('Time')
+    # plt.ylabel('Packets / Second')
 
     file.write(str(currentTime) + "," + str(packetsPerSecond) + "\n")
+    file.flush()
 
     print("[LOG] [printResult] " + str(currentTime) + ": " + str(round(packetsPerSecond,2)) + " pck/s")
 
