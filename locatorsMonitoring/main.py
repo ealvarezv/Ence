@@ -43,6 +43,9 @@ def getStatus():
         timePacket = time.time() * 1000
         locatorName = data["locators"][i]["name"]
         locatorStatus = data["locators"][i]["connection"]
+        locatorMode = data["locators"][i]["mode"]
+        locatorIP = data["locators"][i]["ipAddress"]
+        locatorSensitivity = data["locators"][i]["sensitivity"]
 
         if data["locators"][i]["lastGoodPacketTS"] is None:
             locatorLastGoodPacketTS = 0
@@ -57,19 +60,17 @@ def getStatus():
         timeLastGoodPacketTS = timePacket - locatorLastGoodPacketTS
         timeLastPacketTS = timePacket - locatorLastPacketTS
 
-        objFile.write(locatorName + "," + locatorStatus
-                      + "," + str(timeLastGoodPacketTS) + ","
-                      + str(timeLastPacketTS) + "\n")
+        objFile.write("{},{},{},{},{},{},{}\n".format(locatorName, locatorStatus,
+                      locatorMode, locatorIP, locatorSensitivity,
+                      str(timeLastGoodPacketTS), str(timeLastPacketTS)))
         i += 1
 
-    objFile.write("\n")
     objFile.close()
-
-    return fileName
 
     print("[LOG] [getStatus] Analyzed Time: "
           + str(datetime.fromtimestamp(currentTime)))
 
+    return fileName
 
 # Function to create SSH Cliente
 def createSSHClient(server, port, user, password):
@@ -91,6 +92,8 @@ def main():
         scp.put(getStatus())
         scp.close()
         ssh.close()
+
+        time.sleep(60)
 
     print("\n#################### GAME OVER ####################\n")
 
