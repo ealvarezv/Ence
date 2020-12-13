@@ -25,7 +25,7 @@ SERVER_PASS = "EIVmNP3a5K"
 
 # ################### FUNCTIONS ####################
 # Function to know the status of each locator
-def getStatus(i, xs, ys, ax, array, file):
+def getStatus():
     currentTime = time.time()
 
     currentFolder = os.path.dirname(os.path.abspath(__file__))
