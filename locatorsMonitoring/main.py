@@ -29,7 +29,7 @@ def getStatus(i, xs, ys, ax, array, file):
     currentTime = time.time()
 
     currentFolder = os.path.dirname(os.path.abspath(__file__))
-    fileName = (currentFolder + "/" + OUTPUT_FOLDER + "/LocatorStatus"
+    fileName = (currentFolder + "/" + OUTPUT_FOLDER + "/locatorStatus"
                 + str(currentTime) + ".txt")
     objFile = open(fileName, "w")
 
@@ -93,6 +93,6 @@ def main():
     print("\n#################### GAME OVER ####################\n")
 
 
-# ################### EJECUCIÓN ####################
+# ################### EJECUCION ####################
 # Script execution
 main()
