@@ -22,16 +22,44 @@ SERVER_IP = "89.107.49.125"
 SERVER_USER = "ence"
 SERVER_PASS = "EIVmNP3a5K"
 
+AP_NUMBER = 20
+
 
 # ################### FUNCTIONS ####################
+# Function to know the status of each AP
+def getAPStatus(time):
+    currentFolder = os.path.dirname(os.path.abspath(__file__))
+    fileAPName = (currentFolder + "/" + OUTPUT_FOLDER + "/APStatus"
+                  + str(round(time)) + ".csv")
+    objAPFile = open(fileAPName, "w")
+
+    for i in range(1, AP_NUMBER + 1):
+        APName = ("AP-" + i)
+        ipAddress = ("192.168.123." + i)
+        response = os.system("ping -c 1 " + ipAddress)
+        if response == 0:
+            APStatus = "OK"
+        else:
+            APStatus = "KO"
+
+        objAPFile.write("{},{},{}\n".format(APName, ipAddress, APStatus))
+
+    objAPFile.close()
+
+    print("[LOG] [getAPStatus] Analyzed Time: "
+          + str(datetime.fromtimestamp(time)))
+
+    return fileAPName
+
+
 # Function to know the status of each locator
-def getStatus():
+def getLocatorStatus(time):
     currentTime = time.time()
 
     currentFolder = os.path.dirname(os.path.abspath(__file__))
-    fileName = (currentFolder + "/" + OUTPUT_FOLDER + "/locatorStatus"
-                + str(round(currentTime)) + ".csv")
-    objFile = open(fileName, "w")
+    fileLocatorName = (currentFolder + "/" + OUTPUT_FOLDER + "/locatorStatus"
+                       + str(round(currentTime)) + ".csv")
+    objFile = open(fileLocatorName, "w")
 
     url = "http://192.168.123.124:9090/qpe/getLocatorInfo?humanReadable=True"
     response = urllib.request.urlopen(url)
@@ -64,13 +92,12 @@ def getStatus():
                       locatorIP, locatorSensitivity, str(timeLastGoodPacketTS),
                       str(timeLastPacketTS)))
         i += 1
-
     objFile.close()
 
-    print("[LOG] [getStatus] Analyzed Time: "
+    print("[LOG] [getLocatorStatus] Analyzed Time: "
           + str(datetime.fromtimestamp(currentTime)))
 
-    return fileName
+    return fileLocatorName
 
 
 # Function to create SSH Cliente
@@ -87,10 +114,13 @@ def main():
     print("\n#################### START ####################")
 
     while True:
+        currentTime = time.time()
         ssh = createSSHClient(SERVER_IP, SERVER_PORT, SERVER_USER, SERVER_PASS)
         scp = SCPClient(ssh.get_transport())
 
-        scp.put(getStatus())
+        scp.put(getLocatorStatus(currentTime))
+        scp.put(getAPStatus(currentTime))
+
         scp.close()
         ssh.close()
 
@@ -99,6 +129,6 @@ def main():
     print("\n#################### GAME OVER ####################\n")
 
 
-# ################### EJECUCION ####################
+# ################### EXECUTION ####################
 # Script execution
 main()
