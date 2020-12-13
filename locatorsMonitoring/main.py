@@ -7,7 +7,6 @@
 import json
 import os
 import paramiko
-import sys
 import time
 import urllib.request
 
@@ -60,9 +59,10 @@ def getStatus():
         timeLastGoodPacketTS = timePacket - locatorLastGoodPacketTS
         timeLastPacketTS = timePacket - locatorLastPacketTS
 
-        objFile.write("{},{},{},{},{},{},{}\n".format(locatorName, locatorStatus,
-                      locatorMode, locatorIP, locatorSensitivity,
-                      str(timeLastGoodPacketTS), str(timeLastPacketTS)))
+        objFile.write("{},{},{},{},{},{},{}\n".format(locatorName,
+                      locatorStatus, locatorMode,
+                      locatorIP, locatorSensitivity, str(timeLastGoodPacketTS),
+                      str(timeLastPacketTS)))
         i += 1
 
     objFile.close()
@@ -71,6 +71,7 @@ def getStatus():
           + str(datetime.fromtimestamp(currentTime)))
 
     return fileName
+
 
 # Function to create SSH Cliente
 def createSSHClient(server, port, user, password):
