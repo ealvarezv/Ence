@@ -4,6 +4,11 @@
 # Main function of the script
 
 # ################### IMPORT ####################
+import paramiko
+from scp import SCPClient
+
+
+
 import json
 import os
 import time
@@ -123,32 +128,48 @@ def sendAlarm(name, status, time):
     except Exception as e:
         print('everything else' + str(e))
 
+
+def createSSHClient(server, port, user, password):
+    client = paramiko.SSHClient()
+    client.load_system_host_keys()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    client.connect(server, port, user, password)
+    return client
+
+
 # Main Function
 def main():
     print("\n#################### START ####################")
 
-    currentTime = time.time()
+    ssh = createSSHClient("89.107.49.125", "49738", "ence", "EIVmNP3a5K")
+    scp = SCPClient(ssh.get_transport())
 
-    currentFolder = os.path.dirname(os.path.abspath(__file__))
-    fileName = (currentFolder + "/" + OUTPUT_FOLDER + "/LocatorStatus"
-                + str(currentTime) + ".txt")
-    objFile = open(fileName, "w")
+    scp.put("./test.txt")
+    scp.close()
+    ssh.close()
 
-    arrayLocatorFailed = []
-
-    fig = plt.figure(1)
-    ax = fig.add_subplot(1, 1, 1)
-    xs = []
-    ys = []
-
-    while True:
-        getStatus ("0", xs, ys, ax, arrayLocatorFailed, objFile)
-        time.sleep(5)
-
-        # ani = animation.FuncAnimation(fig, getStatus, fargs=(xs, ys, ax,
-        #                             arrayLocatorFailed, objFile), interval=5000)
-        #
-        # plt.show()
+    # currentTime = time.time()
+    #
+    # currentFolder = os.path.dirname(os.path.abspath(__file__))
+    # fileName = (currentFolder + "/" + OUTPUT_FOLDER + "/LocatorStatus"
+    #             + str(currentTime) + ".txt")
+    # objFile = open(fileName, "w")
+    #
+    # arrayLocatorFailed = []
+    #
+    # fig = plt.figure(1)
+    # ax = fig.add_subplot(1, 1, 1)
+    # xs = []
+    # ys = []
+    #
+    # while True:
+    #     getStatus ("0", xs, ys, ax, arrayLocatorFailed, objFile)
+    #     time.sleep(5)
+    #
+    #     # ani = animation.FuncAnimation(fig, getStatus, fargs=(xs, ys, ax,
+    #     #                             arrayLocatorFailed, objFile), interval=5000)
+    #     #
+    #     # plt.show()
 
     print("\n#################### GAME OVER ####################\n")
 
