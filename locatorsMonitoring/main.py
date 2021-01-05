@@ -7,6 +7,7 @@
 import json
 import os
 import paramiko
+import socket
 import time
 import urllib.request
 
@@ -23,6 +24,10 @@ SERVER_USER = "ence"
 SERVER_PASS = "EIVmNP3a5K"
 
 AP_NUMBER = 20
+WLC_IP = "192.168.123.124"
+WLC_PORT = 8443
+QPE_IP = "192.168.123.124"
+QPE_PORT = 9090
 
 
 # ################### FUNCTIONS ####################
@@ -51,6 +56,33 @@ def getAPStatus(currentTime):
           + str(datetime.fromtimestamp(currentTime)))
 
     return fileAPName
+
+
+# Function to know the status of the WLC
+def getWLCStatus(currentTime):
+    currentFolder = os.path.dirname(os.path.abspath(__file__))
+    fileWLCName = (currentFolder + "/" + OUTPUT_FOLDER + "/WLCStatus"
+                   + str(round(currentTime)) + ".csv")
+    objWLCFile = open(fileWLCName, "w")
+
+    objWLCFile.write("{},{},{}\n".format("WLC IP", "WLC Port", "WLC Status"))
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        s.connect(WLC_IP, WLC_PORT)
+        s.shutdown(2)
+        WLCStatus = "OK"
+    except Exception:
+        WLCStatus = "KO"
+
+    objWLCFile.write("{},{},{}\n".format(WLC_IP, WLC_PORT, WLCStatus))
+
+    objWLCFile.close()
+
+    print("[LOG] [getWLCStatus] Analyzed Time: "
+          + str(datetime.fromtimestamp(currentTime)))
+
+    return fileWLCName
 
 
 # Function to know the status of each locator
@@ -104,6 +136,32 @@ def getLocatorStatus(currentTime):
     return fileLocatorName
 
 
+# Function to know the status of each locator
+def getQPEStatus(currentTime):
+    currentFolder = os.path.dirname(os.path.abspath(__file__))
+    fileQPEName = (currentFolder + "/" + OUTPUT_FOLDER + "/QPEStatus"
+                   + str(round(currentTime)) + ".csv")
+    objQPEFile = open(fileQPEName, "w")
+
+    objQPEFile.write("{},{},{}\n".format("QPE IP", "QPE Port", "QPE Status"))
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        s.connect(QPE_IP, QPE_PORT)
+        s.shutdown(2)
+        QPEStatus = "OK"
+    except Exception:
+        QPEStatus = "KO"
+
+    objQPEFile.write("{},{},{}\n".format(QPE_IP, QPE_PORT, QPEStatus))
+    objQPEFile.close()
+
+    print("[LOG] [getQPEStatus] Analyzed Time: "
+          + str(datetime.fromtimestamp(currentTime)))
+
+    return fileQPEName
+
+
 # Function to create SSH Cliente
 def createSSHClient(server, port, user, password):
     client = paramiko.SSHClient()
@@ -123,7 +181,9 @@ def main():
         scp = SCPClient(ssh.get_transport())
 
         scp.put(getAPStatus(currentTime))
+        scp.put(getWLCStatus(currentTime))
         scp.put(getLocatorStatus(currentTime))
+        scp.put(getQPEStatus(currentTime))
 
         scp.close()
         ssh.close()
