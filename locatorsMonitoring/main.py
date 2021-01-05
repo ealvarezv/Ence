@@ -102,33 +102,36 @@ def getLocatorStatus(currentTime):
                          "Locator Sensitivity", "timeLastGoodPacketTS",
                          "timeLastPacketTS"))
 
-    i = 0
-    while i < len(data["locators"]):
-        timePacket = time.time() * 1000
-        locatorName = data["locators"][i]["name"]
-        locatorStatus = data["locators"][i]["connection"]
-        locatorMode = data["locators"][i]["mode"]
-        locatorIP = data["locators"][i]["ipAddress"]
-        locatorSensitivity = data["locators"][i]["sensitivity"]
+    if data["code"] == 0:
+        i = 0
+        while i < len(data["locators"]):
+            timePacket = time.time() * 1000
+            locatorName = data["locators"][i]["name"]
+            locatorStatus = data["locators"][i]["connection"]
+            locatorMode = data["locators"][i]["mode"]
+            locatorIP = data["locators"][i]["ipAddress"]
+            locatorSensitivity = data["locators"][i]["sensitivity"]
 
-        if data["locators"][i]["lastGoodPacketTS"] is None:
-            locatorLastGoodPacketTS = 0
-        else:
-            locatorLastGoodPacketTS = data["locators"][i]["lastGoodPacketTS"]
+            if data["locators"][i]["lastGoodPacketTS"] is None:
+                locatorLastGoodPacketTS = 0
+            else:
+                locatorLastGoodPacketTS = data["locators"][i]["lastGoodPacketTS"]
 
-        if data["locators"][i]["lastPacketTS"] is None:
-            locatorLastGoodPacketTS = 0
-        else:
-            locatorLastPacketTS = data["locators"][i]["lastPacketTS"]
+            if data["locators"][i]["lastPacketTS"] is None:
+                locatorLastGoodPacketTS = 0
+            else:
+                locatorLastPacketTS = data["locators"][i]["lastPacketTS"]
 
-        timeLastGoodPacketTS = timePacket - locatorLastGoodPacketTS
-        timeLastPacketTS = timePacket - locatorLastPacketTS
+            timeLastGoodPacketTS = timePacket - locatorLastGoodPacketTS
+            timeLastPacketTS = timePacket - locatorLastPacketTS
 
-        objLocatorFile.write("{},{},{},{},{},{},{}\n".format(locatorName,
-                             locatorStatus, locatorMode,
-                             locatorIP, locatorSensitivity,
-                             str(timeLastGoodPacketTS), str(timeLastPacketTS)))
-        i += 1
+            objLocatorFile.write("{},{},{},{},{},{},{}\n".format(locatorName,
+                                 locatorStatus, locatorMode,
+                                 locatorIP, locatorSensitivity,
+                                 str(timeLastGoodPacketTS), str(timeLastPacketTS)))
+            i += 1
+    else:
+        objLocatorFile.write("Error Code: {}\n".format(data["code"]))
 
     objLocatorFile.close()
 
