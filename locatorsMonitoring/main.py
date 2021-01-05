@@ -69,14 +69,15 @@ def getWLCStatus(currentTime):
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        s.connect(WLC_IP, WLC_PORT)
+        s.connect((WLC_IP, int(WLC_PORT)))
         s.shutdown(2)
         WLCStatus = "OK"
     except Exception:
         WLCStatus = "KO"
+    finally:
+        s.close()
 
     objWLCFile.write("{},{},{}\n".format(WLC_IP, WLC_PORT, WLCStatus))
-
     objWLCFile.close()
 
     print("[LOG] [getWLCStatus] Analyzed Time: "
@@ -128,6 +129,7 @@ def getLocatorStatus(currentTime):
                              locatorIP, locatorSensitivity,
                              str(timeLastGoodPacketTS), str(timeLastPacketTS)))
         i += 1
+
     objLocatorFile.close()
 
     print("[LOG] [getLocatorStatus] Analyzed Time: "
@@ -180,10 +182,10 @@ def main():
         ssh = createSSHClient(SERVER_IP, SERVER_PORT, SERVER_USER, SERVER_PASS)
         scp = SCPClient(ssh.get_transport())
 
-        scp.put(getAPStatus(currentTime))
+        # scp.put(getAPStatus(currentTime))
         scp.put(getWLCStatus(currentTime))
-        scp.put(getLocatorStatus(currentTime))
-        scp.put(getQPEStatus(currentTime))
+        # scp.put(getLocatorStatus(currentTime))
+        # scp.put(getQPEStatus(currentTime))
 
         scp.close()
         ssh.close()
