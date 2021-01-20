@@ -193,7 +193,7 @@ def main():
         scp.close()
         ssh.close()
 
-        time.sleep(30)
+        time.sleep(300)
 
     print("\n#################### GAME OVER ####################\n")
 
