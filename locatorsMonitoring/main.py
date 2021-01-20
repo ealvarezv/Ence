@@ -23,7 +23,7 @@ SERVER_IP = "89.107.49.125"
 SERVER_USER = "ence"
 SERVER_PASS = "EIVmNP3a5K"
 
-AP_NUMBER = 20
+AP_NUMBER = 21
 WLC_IP = "192.168.123.124"
 WLC_PORT = 8443
 QPE_IP = "192.168.123.124"
@@ -102,26 +102,6 @@ def getLocatorStatus(currentTime):
                          "Locator Sensitivity", "timeLastGoodPacketTS",
                          "timeLastPacketTS"))
 
-<<<<<<< HEAD
-    i = 0
-    while i < len(data["locators"]):
-        timePacket = time.time() * 1000
-        locatorName = data["locators"][i]["name"]
-        locatorStatus = data["locators"][i]["connection"]
-        locatorMode = data["locators"][i]["mode"]
-        locatorIP = data["locators"][i]["ipAddress"]
-        locatorSensitivity = data["locators"][i]["sensitivity"]
-
-        if data["locators"][i]["lastGoodPacketTS"] is None:
-            locatorLastGoodPacketTS = 0
-        else:
-            locatorLastGoodPacketTS = data["locators"][i]["lastGoodPacketTS"]
-
-        if data["locators"][i]["lastPacketTS"] is None:
-            locatorLastPacketTS = 0
-        else:
-            locatorLastPacketTS = data["locators"][i]["lastPacketTS"]
-=======
     if data["code"] == 0:
         i = 0
         while i < len(data["locators"]):
@@ -152,7 +132,6 @@ def getLocatorStatus(currentTime):
             i += 1
     else:
         objLocatorFile.write("Error Code: {}\n".format(data["code"]))
->>>>>>> 616ef9f4f36f2a386f29c05ad5d71c34642c2af0
 
     objLocatorFile.close()
 
@@ -173,7 +152,7 @@ def getQPEStatus(currentTime):
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        s.connect(QPE_IP, QPE_PORT)
+        s.connect((QPE_IP, int(QPE_PORT)))
         s.shutdown(2)
         QPEStatus = "OK"
     except Exception:
@@ -206,15 +185,15 @@ def main():
         ssh = createSSHClient(SERVER_IP, SERVER_PORT, SERVER_USER, SERVER_PASS)
         scp = SCPClient(ssh.get_transport())
 
-        # scp.put(getAPStatus(currentTime))
+        scp.put(getAPStatus(currentTime))
         scp.put(getWLCStatus(currentTime))
-        # scp.put(getLocatorStatus(currentTime))
-        # scp.put(getQPEStatus(currentTime))
+        scp.put(getLocatorStatus(currentTime))
+        scp.put(getQPEStatus(currentTime))
 
         scp.close()
         ssh.close()
 
-        time.sleep(300)
+        time.sleep(30)
 
     print("\n#################### GAME OVER ####################\n")
 
