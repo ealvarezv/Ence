@@ -547,7 +547,7 @@ def calculateLatency(arrayTS):
 
 
 # Function to create the grid
-def grid_maker(size: int = 40, mapa: list = [[-169, 89], [-60, 120]],
+def grid_maker(size: int = 40, mapa: list = [[-169, 189], [-60, 160]],
                data: list = []):
     a = abs(mapa[0][0] - mapa[0][1])
     b = abs(mapa[1][0] - mapa[1][1])
@@ -556,12 +556,15 @@ def grid_maker(size: int = 40, mapa: list = [[-169, 89], [-60, 120]],
     array = np.zeros([sec_pixel_num, size])
     super_list = [[0] for x in range(size * sec_pixel_num + 1)]
 
-    for i in data:
-        norm = [i[0] - mapa[0][0], i[1] - mapa[1][0]]
-        pixel_coord = [int(round(norm[0] / pixel_size)),
-                       int(round(norm[1] / pixel_size))]
-        pos_s_l = pixel_coord[0] + pixel_coord[1]*sec_pixel_num
-        super_list[pos_s_l].append(i[2])
+    try:
+        for i in data:
+            norm = [i[0] - mapa[0][0], i[1] - mapa[1][0]]
+            pixel_coord = [int(round(norm[0] / pixel_size)),
+                           int(round(norm[1] / pixel_size))]
+            pos_s_l = pixel_coord[0] + pixel_coord[1]*sec_pixel_num
+            super_list[pos_s_l].append(i[2])
+    except Exception as e:
+        print(e)
 
     count = 1
     for i in range(array.shape[1]):
