@@ -23,7 +23,7 @@ SERVER_IP = "89.107.49.125"
 SERVER_USER = "ence"
 SERVER_PASS = "EIVmNP3a5K"
 
-AP_NUMBER = 20
+AP_NUMBER = 21
 WLC_IP = "192.168.123.124"
 WLC_PORT = 8443
 QPE_IP = "192.168.123.124"
@@ -153,7 +153,7 @@ def getQPEStatus(currentTime):
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        s.connect(QPE_IP, QPE_PORT)
+        s.connect((QPE_IP, int(QPE_PORT)))
         s.shutdown(2)
         QPEStatus = "OK"
     except Exception:
@@ -186,15 +186,15 @@ def main():
         ssh = createSSHClient(SERVER_IP, SERVER_PORT, SERVER_USER, SERVER_PASS)
         scp = SCPClient(ssh.get_transport())
 
-        # scp.put(getAPStatus(currentTime))
+        scp.put(getAPStatus(currentTime))
         scp.put(getWLCStatus(currentTime))
-        # scp.put(getLocatorStatus(currentTime))
-        # scp.put(getQPEStatus(currentTime))
+        scp.put(getLocatorStatus(currentTime))
+        scp.put(getQPEStatus(currentTime))
 
         scp.close()
         ssh.close()
 
-        time.sleep(60)
+        time.sleep(300)
 
     print("\n#################### GAME OVER ####################\n")
 
