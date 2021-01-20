@@ -84,7 +84,7 @@ def getLocatorStatus(currentTime):
             locatorLastGoodPacketTS = data["locators"][i]["lastGoodPacketTS"]
 
         if data["locators"][i]["lastPacketTS"] is None:
-            locatorLastGoodPacketTS = 0
+            locatorLastPacketTS = 0
         else:
             locatorLastPacketTS = data["locators"][i]["lastPacketTS"]
 
@@ -128,7 +128,7 @@ def main():
         scp.close()
         ssh.close()
 
-        time.sleep(60)
+        time.sleep(300)
 
     print("\n#################### GAME OVER ####################\n")
 
