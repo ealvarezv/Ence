@@ -7,6 +7,7 @@
 import json
 import os
 import paramiko
+import socket
 import time
 import urllib.request
 
@@ -23,6 +24,10 @@ SERVER_USER = "ence"
 SERVER_PASS = "EIVmNP3a5K"
 
 AP_NUMBER = 20
+WLC_IP = "192.168.123.124"
+WLC_PORT = 8443
+QPE_IP = "192.168.123.124"
+QPE_PORT = 9090
 
 
 # ################### FUNCTIONS ####################
@@ -53,6 +58,34 @@ def getAPStatus(currentTime):
     return fileAPName
 
 
+# Function to know the status of the WLC
+def getWLCStatus(currentTime):
+    currentFolder = os.path.dirname(os.path.abspath(__file__))
+    fileWLCName = (currentFolder + "/" + OUTPUT_FOLDER + "/WLCStatus"
+                   + str(round(currentTime)) + ".csv")
+    objWLCFile = open(fileWLCName, "w")
+
+    objWLCFile.write("{},{},{}\n".format("WLC IP", "WLC Port", "WLC Status"))
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        s.connect((WLC_IP, int(WLC_PORT)))
+        s.shutdown(2)
+        WLCStatus = "OK"
+    except Exception:
+        WLCStatus = "KO"
+    finally:
+        s.close()
+
+    objWLCFile.write("{},{},{}\n".format(WLC_IP, WLC_PORT, WLCStatus))
+    objWLCFile.close()
+
+    print("[LOG] [getWLCStatus] Analyzed Time: "
+          + str(datetime.fromtimestamp(currentTime)))
+
+    return fileWLCName
+
+
 # Function to know the status of each locator
 def getLocatorStatus(currentTime):
     currentFolder = os.path.dirname(os.path.abspath(__file__))
@@ -69,6 +102,7 @@ def getLocatorStatus(currentTime):
                          "Locator Sensitivity", "timeLastGoodPacketTS",
                          "timeLastPacketTS"))
 
+<<<<<<< HEAD
     i = 0
     while i < len(data["locators"]):
         timePacket = time.time() * 1000
@@ -87,21 +121,71 @@ def getLocatorStatus(currentTime):
             locatorLastPacketTS = 0
         else:
             locatorLastPacketTS = data["locators"][i]["lastPacketTS"]
+=======
+    if data["code"] == 0:
+        i = 0
+        while i < len(data["locators"]):
+            timePacket = time.time() * 1000
+            locatorName = data["locators"][i]["name"]
+            locatorStatus = data["locators"][i]["connection"]
+            locatorMode = data["locators"][i]["mode"]
+            locatorIP = data["locators"][i]["ipAddress"]
+            locatorSensitivity = data["locators"][i]["sensitivity"]
 
-        timeLastGoodPacketTS = timePacket - locatorLastGoodPacketTS
-        timeLastPacketTS = timePacket - locatorLastPacketTS
+            if data["locators"][i]["lastGoodPacketTS"] is None:
+                locatorLastGoodPacketTS = 0
+            else:
+                locatorLastGoodPacketTS = data["locators"][i]["lastGoodPacketTS"]
 
-        objLocatorFile.write("{},{},{},{},{},{},{}\n".format(locatorName,
-                             locatorStatus, locatorMode,
-                             locatorIP, locatorSensitivity,
-                             str(timeLastGoodPacketTS), str(timeLastPacketTS)))
-        i += 1
+            if data["locators"][i]["lastPacketTS"] is None:
+                locatorLastGoodPacketTS = 0
+            else:
+                locatorLastPacketTS = data["locators"][i]["lastPacketTS"]
+
+            timeLastGoodPacketTS = timePacket - locatorLastGoodPacketTS
+            timeLastPacketTS = timePacket - locatorLastPacketTS
+
+            objLocatorFile.write("{},{},{},{},{},{},{}\n".format(locatorName,
+                                 locatorStatus, locatorMode,
+                                 locatorIP, locatorSensitivity,
+                                 str(timeLastGoodPacketTS), str(timeLastPacketTS)))
+            i += 1
+    else:
+        objLocatorFile.write("Error Code: {}\n".format(data["code"]))
+>>>>>>> 616ef9f4f36f2a386f29c05ad5d71c34642c2af0
+
     objLocatorFile.close()
 
     print("[LOG] [getLocatorStatus] Analyzed Time: "
           + str(datetime.fromtimestamp(currentTime)))
 
     return fileLocatorName
+
+
+# Function to know the status of each locator
+def getQPEStatus(currentTime):
+    currentFolder = os.path.dirname(os.path.abspath(__file__))
+    fileQPEName = (currentFolder + "/" + OUTPUT_FOLDER + "/QPEStatus"
+                   + str(round(currentTime)) + ".csv")
+    objQPEFile = open(fileQPEName, "w")
+
+    objQPEFile.write("{},{},{}\n".format("QPE IP", "QPE Port", "QPE Status"))
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        s.connect(QPE_IP, QPE_PORT)
+        s.shutdown(2)
+        QPEStatus = "OK"
+    except Exception:
+        QPEStatus = "KO"
+
+    objQPEFile.write("{},{},{}\n".format(QPE_IP, QPE_PORT, QPEStatus))
+    objQPEFile.close()
+
+    print("[LOG] [getQPEStatus] Analyzed Time: "
+          + str(datetime.fromtimestamp(currentTime)))
+
+    return fileQPEName
 
 
 # Function to create SSH Cliente
@@ -122,8 +206,10 @@ def main():
         ssh = createSSHClient(SERVER_IP, SERVER_PORT, SERVER_USER, SERVER_PASS)
         scp = SCPClient(ssh.get_transport())
 
-        scp.put(getAPStatus(currentTime))
-        scp.put(getLocatorStatus(currentTime))
+        # scp.put(getAPStatus(currentTime))
+        scp.put(getWLCStatus(currentTime))
+        # scp.put(getLocatorStatus(currentTime))
+        # scp.put(getQPEStatus(currentTime))
 
         scp.close()
         ssh.close()
