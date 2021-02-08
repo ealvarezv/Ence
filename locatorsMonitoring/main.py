@@ -128,7 +128,8 @@ def getLocatorStatus(currentTime):
             objLocatorFile.write("{},{},{},{},{},{},{}\n".format(locatorName,
                                  locatorStatus, locatorMode,
                                  locatorIP, locatorSensitivity,
-                                 str(timeLastGoodPacketTS), str(timeLastPacketTS)))
+                                 str(timeLastGoodPacketTS),
+                                 str(timeLastPacketTS)))
             i += 1
     else:
         objLocatorFile.write("Error Code: {}\n".format(data["code"]))
